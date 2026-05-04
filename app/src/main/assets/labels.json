@@ -1,0 +1,33 @@
+{
+  "class_names": [
+    "eairh",
+    "eh",
+    "heh",
+    "neh",
+    "owh"
+  ],
+  "label_to_idx": {
+    "eairh": 0,
+    "eh": 1,
+    "heh": 2,
+    "neh": 3,
+    "owh": 4
+  },
+  "idx_to_label": {
+    "0": "eairh",
+    "1": "eh",
+    "2": "heh",
+    "3": "neh",
+    "4": "owh"
+  },
+  "sample_rate": 16000,
+  "clip_duration_sec": 3.0,
+  "n_fft": 1024,
+  "hop_length": 256,
+  "n_mels": 128,
+  "image_size": [
+    224,
+    224
+  ],
+  "preprocessing": "audio -> log-Mel -> resize -> RGB -> tf.keras.applications.vgg16.preprocess_input"
+}

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F8FA">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- App title -->
+  <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Baby Cry Classifier"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="#1E3A5F"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Status card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ready — press a button below to start"
+                android:textSize="14sp"
+                android:textColor="#64748B"
+                android:gravity="center"
+                android:padding="16dp" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Section: Auto Detection -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="AUTO DETECTION"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#94A3B8"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/startListeningButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="▶  Start Listening"
+            android:textSize="15sp"
+            android:backgroundTint="#0D9488"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/stopListeningButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="⏹  Stop Listening"
+            android:textSize="15sp"
+            android:backgroundTint="#64748B"
+            android:layout_marginBottom="24dp"
+            android:enabled="false" />
+
+        <!-- Section: Manual -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="MANUAL TEST"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#94A3B8"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/recordButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="🎙  Record 3 Seconds"
+            android:textSize="15sp"
+            android:backgroundTint="#1E3A5F"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/analyzeButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="🔍  Analyse"
+            android:textSize="15sp"
+            android:backgroundTint="#1E3A5F"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Results card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="RESULT"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#94A3B8"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/topOneResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Most likely: —"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#0D9488"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/topTwoResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Second possibility: —"
+                    android:textSize="15sp"
+                    android:textColor="#64748B" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Bottom padding -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="24dp" />
+
+    </LinearLayout>
+
+</ScrollView>
