@@ -45,12 +45,40 @@ public class AudioPreprocessor {
         float[] audio   = padOrCrop(audioClip);
         float[] hann    = buildHannWindow(N_FFT);
         double[][] mel  = computeMelSpectrogram(audio, hann);
-        double[][] db   = powerToDb(mel);
-        double[][] norm = normaliseTo255(db);
+        double[][] norm = normaliseTo255(mel);
+        double[][] quant = quantiseToUint8(norm);
         double[][] img  = bicubicResize(norm, IMAGE_SIZE, IMAGE_SIZE);
+        // DEBUG — log mel stats to Logcat
+        double melMin = Double.MAX_VALUE, melMax = -Double.MAX_VALUE;
+        for (double[] row : mel) for (double v : row) {
+            if (v < melMin) melMin = v;
+            if (v > melMax) melMax = v;
+        }
+        double normMin = Double.MAX_VALUE, normMax = -Double.MAX_VALUE;
+        for (double[] row : norm) for (double v : row) {
+            if (v < normMin) normMin = v;
+            if (v > normMax) normMax = v;
+        }
+        android.util.Log.d("AudioPreprocessor",
+                "mel range: [" + melMin + ", " + melMax + "]");
+        android.util.Log.d("AudioPreprocessor",
+                "norm range: [" + normMin + ", " + normMax + "]");
+        android.util.Log.d("AudioPreprocessor",
+                "img[0][0]=" + img[0][0] + " img[112][112]=" + img[112][112]);
+
         return toVgg16Input(img);
     }
 
+    // Matches Python: mel.astype(np.uint8) — truncates to integer values
+    private static double[][] quantiseToUint8(double[][] input) {
+        int rows = input.length;
+        int cols = input[0].length;
+        double[][] out = new double[rows][cols];
+        for (int m = 0; m < rows; m++)
+            for (int t = 0; t < cols; t++)
+                out[m][t] = (double)((int) input[m][t]);  // truncate to integer
+        return out;
+    }
     // Step 1 — pad / center-crop to CLIP_SAMPLES
 
     private static float[] padOrCrop(short[] input) {

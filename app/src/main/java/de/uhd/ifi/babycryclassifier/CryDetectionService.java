@@ -11,11 +11,34 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.app.PendingIntent;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
+/**
+ * CryDetectionService — continuously listens to the microphone.
+ *
+ * Detection strategy (two-gate):
+ *   1. Energy gate  — fast, cheap: skip silent frames immediately.
+ *   2. ML gate      — CryDetector (binary TFLite model) called on a
+ *                     3-second window once energy crosses the threshold.
+ *                     Only if the ML model agrees do we escalate to the
+ *                     5-class CryClassifier.
+ *
+ * This avoids running the ML model on every chunk while still being
+ * far more robust than a pure energy threshold.
+ *
+ *  After each cry is detected and classified:
+ *    1. Result is saved to the local Room database (CryRepository)
+ *    2. Result is broadcast to MainActivity for live UI update
+ *    3. Detection loop restarts automatically — no stopSelf()
+ *
+ *  A partial wake lock prevents Android from killing the service
+ *  when the screen turns off.
+ */
 public class CryDetectionService extends Service {
 
     private static final String CHANNEL_ID          = "CryDetectionChannel";
@@ -25,8 +48,13 @@ public class CryDetectionService extends Service {
     private static final int    CLIP_SECONDS         = 3;
     private static final int    CLIP_SAMPLES         = SAMPLE_RATE * CLIP_SECONDS;
 
-    private static final double CRY_THRESHOLD        = 1_500;
-    private static final int    REQUIRED_LOUD_CHUNKS = 4;
+    private static final double ENERGY_THRESHOLD        = 500;
+    private static final int    REQUIRED_LOUD_CHUNKS = 3;
+
+    // How often to run the ML gate (every N loud windows)
+    private static final int    ML_CHECK_INTERVAL  = 1;   // check every loud trigger
+    private static final int COOLDOWN_MS = 10_000;  // 10 seconds
+
 
     private AudioRecord      audioRecord;
     private volatile boolean isListening = false;
@@ -35,12 +63,27 @@ public class CryDetectionService extends Service {
     private int     ringIndex        = 0;
     private boolean ringFilled       = false;
     private int     loudChunkCounter = 0;
+    private int     mlCheckCounter    = 0;
+
+    private CryDetector cryDetector;   // binary ML gate
+    private PowerManager.WakeLock wakeLock;
 
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
         startForeground(NOTIF_ID, buildNotification("Listening for baby crying…"));
+        acquireWakeLock();
+
+        // Initialise the binary detector once (cheap to keep in memory)
+        try {
+            cryDetector = new CryDetector(this);
+        } catch (Exception e) {
+            android.util.Log.w("CryDetection",
+                    "Binary model not found — falling back to energy-only gate", e);
+            cryDetector = null;
+        }
+
         startListening();
     }
 
@@ -48,12 +91,37 @@ public class CryDetectionService extends Service {
     public void onDestroy() {
         super.onDestroy();
         stopListening();
+        releaseWakeLock();
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        // START_STICKY: if Android kills the service, restart it automatically
+        return START_STICKY;
+    }
     @Nullable
     @Override
     public IBinder onBind(Intent intent) { return null; }
 
+    //Wake lock
+    private void acquireWakeLock() {
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        if (pm != null) {
+            wakeLock = pm.newWakeLock(
+                    PowerManager.PARTIAL_WAKE_LOCK,
+                    "BabyCryClassifier::DetectionWakeLock");
+            wakeLock.acquire();  // held until releaseWakeLock()
+        }
+    }
+
+    private void releaseWakeLock() {
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+            wakeLock = null;
+        }
+    }
+
+    //Detection loop
     private void startListening() {
         if (ActivityCompat.checkSelfPermission(this,
                 android.Manifest.permission.RECORD_AUDIO)
@@ -74,8 +142,15 @@ public class CryDetectionService extends Service {
             return;
         }
 
+        // Reset ring buffer state for fresh detection session
+        ringIndex        = 0;
+        ringFilled       = false;
+        loudChunkCounter = 0;
+        mlCheckCounter   = 0;
+
         isListening = true;
         audioRecord.startRecording();
+        updateNotification("Listening for baby crying…");
 
         new Thread(() -> {
             short[] buffer = new short[bufferSize];
@@ -85,21 +160,48 @@ public class CryDetectionService extends Service {
 
                 writeToRingBuffer(buffer, read);
 
+                //Gate 1: energy
                 double rms = computeRMS(buffer, read);
-                if (rms > CRY_THRESHOLD) {
+                if (rms > ENERGY_THRESHOLD) {
                     loudChunkCounter++;
+                    android.util.Log.d("CryDetection", "Loud chunk: " + loudChunkCounter + " RMS: " + rms);
                 } else {
                     loudChunkCounter = 0;
+                    mlCheckCounter = 0;
                 }
 
-                if (loudChunkCounter >= REQUIRED_LOUD_CHUNKS) {
-                    short[] clip = drainRingBuffer();
-                    onCryDetected(clip);
-                    break;
+                if (loudChunkCounter < REQUIRED_LOUD_CHUNKS) continue;
+
+                //Gate 2: ML binary model
+                mlCheckCounter++;
+                if (mlCheckCounter % ML_CHECK_INTERVAL != 0) continue;
+
+                short[] clip = drainRingBuffer();
+
+                if (cryDetector != null) {
+                    float prob = cryDetector.crySoftmax(clip);
+                    boolean isCry = cryDetector.isCry(clip);
+                    android.util.Log.d("CryDetection",
+                            "ML prob: " + prob + " isCry: " + isCry);
+
+                    if (!isCry) {
+                        android.util.Log.d("CryDetection", "ML rejected — resetting");
+                        loudChunkCounter = 0;
+                        mlCheckCounter = 0;
+                        continue;
+                    }
+
+                    android.util.Log.d("CryDetection",
+                            "ML PASSED — escalating to 5-class classifier");
                 }
+
+                // Both gates passed → classify
+                onCryDetected(clip);
+                break;
             }
         }, "cry-detection-thread").start();
-    }
+}
+
 
     private void stopListening() {
         isListening = false;
@@ -110,9 +212,26 @@ public class CryDetectionService extends Service {
         }
     }
 
-    private void onCryDetected(short[] clip) {
+    /**
+     * Called after classification completes to restart the detection loop.
+     * Recreates AudioRecord so we get a clean recording session.
+     */
+    private void resumeListening() {
         stopListening();
+        updateNotification("Listening for baby crying…");
+        new Thread(() -> {
+            try {
+                Thread.sleep(COOLDOWN_MS);
+            } catch (InterruptedException ignored) {}
+            if (!isListening) {
+                startListening();
+            }
+        }, "cooldown-thread").start();
+    }
+
+    private void onCryDetected(short[] clip) {
         updateNotification("Cry detected! Classifying…");
+        long detectedAt = System.currentTimeMillis();
 
         new Thread(() -> {
             CryClassifier.PredictionResult result = null;
@@ -122,6 +241,19 @@ public class CryDetectionService extends Service {
             } catch (Exception e) {
                 android.util.Log.e("CryDetection", "Classification failed", e);
             }
+
+            // Save to local database
+            if (result != null) {
+                CryRecord record = new CryRecord(
+                        detectedAt,
+                        result.top1Label,
+                        result.top1Percent,
+                        result.top2Label,
+                        result.top2Percent
+                );
+                CryRepository.getInstance(getApplicationContext()).insert(record);
+            }
+
 
             Intent broadcast = new Intent(MainActivity.ACTION_CRY_RESULT);
             if (result != null) {
@@ -136,7 +268,11 @@ public class CryDetectionService extends Service {
                 broadcast.putExtra(MainActivity.EXTRA_TOP2_PERCENT, 0);
             }
             sendBroadcast(broadcast);
-            stopSelf();
+            android.util.Log.d("CryDetection", "Broadcast sent with result: " +
+                    (result != null ? result.top1Label + " " + result.top1Percent : "null"));
+
+            //restart listening - no stopSelf()
+            resumeListening();
         }, "classify-thread").start();
     }
 
@@ -169,16 +305,25 @@ public class CryDetectionService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel ch = new NotificationChannel(
                     CHANNEL_ID, "Cry Detection", NotificationManager.IMPORTANCE_LOW);
+            ch.setDescription("Baby cry detection running in background");
             getSystemService(NotificationManager.class).createNotificationChannel(ch);
         }
     }
 
     private Notification buildNotification(String text) {
+        Intent openApp = new Intent(this, MainActivity.class);
+        openApp.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, openApp,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Baby Cry Classifier")
                 .setContentText(text)
                 .setSmallIcon(android.R.drawable.ic_btn_speak_now)
+                .setContentIntent(pendingIntent)   // tap notification → open app
                 .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true)                  // can't be swiped away
                 .build();
     }
 
