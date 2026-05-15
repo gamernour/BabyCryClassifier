@@ -42,31 +42,28 @@ public class AudioPreprocessor {
      * @return           Float32 tensor [1][224][224][3] ready for TFLite.
      */
     public static float[][][][] preprocessAudioClip(short[] audioClip) {
-        float[] audio   = padOrCrop(audioClip);
-        float[] hann    = buildHannWindow(N_FFT);
-        double[][] mel  = computeMelSpectrogram(audio, hann);
-        double[][] norm = normaliseTo255(mel);
+        float[] audio    = padOrCrop(audioClip);
+        float[] hann     = buildHannWindow(N_FFT);
+        double[][] mel   = computeMelSpectrogram(audio, hann);
+        double[][] norm  = normaliseTo255(mel);
         double[][] quant = quantiseToUint8(norm);
-        double[][] img  = bicubicResize(norm, IMAGE_SIZE, IMAGE_SIZE);
-        // DEBUG — log mel stats to Logcat
-        double melMin = Double.MAX_VALUE, melMax = -Double.MAX_VALUE;
-        for (double[] row : mel) for (double v : row) {
-            if (v < melMin) melMin = v;
-            if (v > melMax) melMax = v;
-        }
-        double normMin = Double.MAX_VALUE, normMax = -Double.MAX_VALUE;
-        for (double[] row : norm) for (double v : row) {
-            if (v < normMin) normMin = v;
-            if (v > normMax) normMax = v;
-        }
-        android.util.Log.d("AudioPreprocessor",
-                "mel range: [" + melMin + ", " + melMax + "]");
-        android.util.Log.d("AudioPreprocessor",
-                "norm range: [" + normMin + ", " + normMax + "]");
-        android.util.Log.d("AudioPreprocessor",
-                "img[0][0]=" + img[0][0] + " img[112][112]=" + img[112][112]);
-
+        double[][] img   = bicubicResize(quant, IMAGE_SIZE, IMAGE_SIZE); // ← quant not norm
+        android.util.Log.d("AudioPreprocessor", "mel range: [" + getMin(mel) + ", " + getMax(mel) + "]");
+        android.util.Log.d("AudioPreprocessor", "norm range: [" + getMin(norm) + ", " + getMax(norm) + "]");
+        android.util.Log.d("AudioPreprocessor", "img[0][0]=" + img[0][0] + " img[112][112]=" + img[112][112]);
         return toVgg16Input(img);
+    }
+
+    private static double getMin(double[][] a) {
+        double min = Double.MAX_VALUE;
+        for (double[] row : a) for (double v : row) if (v < min) min = v;
+        return min;
+    }
+
+    private static double getMax(double[][] a) {
+        double max = -Double.MAX_VALUE;
+        for (double[] row : a) for (double v : row) if (v > max) max = v;
+        return max;
     }
 
     // Matches Python: mel.astype(np.uint8) — truncates to integer values
@@ -137,9 +134,10 @@ public class AudioPreprocessor {
             // In-place Cooley-Tukey radix-2 DIT FFT
             fftInPlace(frameReal, frameImag, N_FFT);
 
+            double windowSumSq = 383.625;  // sum of squared Hann window values for N_FFT=1024
             for (int k = 0; k < halfFft; k++) {
-                power[k][t] = frameReal[k] * frameReal[k]
-                        + frameImag[k] * frameImag[k];
+                power[k][t] = (frameReal[k] * frameReal[k]
+                        + frameImag[k] * frameImag[k]) / windowSumSq;
             }
         }
 

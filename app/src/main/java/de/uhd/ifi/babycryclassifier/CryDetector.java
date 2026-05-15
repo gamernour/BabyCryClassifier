@@ -24,7 +24,7 @@ import java.nio.channels.FileChannel;
 public class CryDetector {
 
     private static final String MODEL_FILE = "cry_detector.tflite";
-    private static final float  THRESHOLD  = 0.6f;   // TODO adjust after evaluating on real audio
+    private static final float  THRESHOLD  = 0.88f;   // TODO adjust after evaluating on real audio
 
     // Must match train_cry_detector.py
     private static final int   SR          = 8_000;
@@ -38,12 +38,14 @@ public class CryDetector {
 
     private static final float[][] MEL_FILTERS = buildMelFilterbank();
 
+
     private final Interpreter interpreter;
 
     public CryDetector(Context context) throws Exception {
         Interpreter.Options opts = new Interpreter.Options();
         opts.setNumThreads(2);
         interpreter = new Interpreter(loadModelFile(context), opts);
+
     }
 
 
