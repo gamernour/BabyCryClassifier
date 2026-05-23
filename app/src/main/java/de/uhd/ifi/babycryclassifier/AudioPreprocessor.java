@@ -3,12 +3,12 @@ package de.uhd.ifi.babycryclassifier;
 /**
  * AudioPreprocessor — matches the Python training pipeline exactly:
  *
- *   1. Load mono PCM at 16 kHz
- *   2. Pad (zeros at end) or center-crop to exactly 3 seconds (48 000 samples)
+ *   1. Pad or center-crop mono PCM at 16 kHz to exactly 3 s (48 000 samples)
  *   3. Compute power Mel-spectrogram:
  *        n_fft=1024, hop_length=256, n_mels=128
- *   4. Convert to dB:  10 * log10(mel / max(mel) + 1e-8)   [power_to_db ref=max]
+ *   4. Convert to dB:  10 * log10(mel / max(mel) + 1e-8)   [power_to_db, ref=max, top_db=80]
  *   5. Normalise to [0, 255]
+ *   Truncate to uint8 integer values  (matches Python: mel.astype(np.uint8))
  *   6. Bicubic resize to 224×224
  *   7. Convert to RGB (replicate channel)
  *   8. VGG16 preprocess_input: subtract ImageNet BGR means
@@ -42,16 +42,29 @@ public class AudioPreprocessor {
      * @return           Float32 tensor [1][224][224][3] ready for TFLite.
      */
     public static float[][][][] preprocessAudioClip(short[] audioClip) {
+        android.util.Log.d("Preprocess", "Input samples: " + audioClip.length
+                + " first=" + audioClip[0]
+                + " mid=" + audioClip[audioClip.length/2]
+                + " max=" + getMaxShort(audioClip));
         float[] audio    = padOrCrop(audioClip);
         float[] hann     = buildHannWindow(N_FFT);
         double[][] mel   = computeMelSpectrogram(audio, hann);
-        double[][] norm  = normaliseTo255(mel);
+        double[][] norm  = normaliseTo255(powerToDb(mel));
         double[][] quant = quantiseToUint8(norm);
-        double[][] img   = bicubicResize(quant, IMAGE_SIZE, IMAGE_SIZE); // ← quant not norm
+        double[][] img   = bicubicResize(quant, IMAGE_SIZE, IMAGE_SIZE);
+        android.util.Log.d("Preprocess", "mel max=" + getMax(mel));
         android.util.Log.d("AudioPreprocessor", "mel range: [" + getMin(mel) + ", " + getMax(mel) + "]");
+        //android.util.Log.d("AudioPreprocessor", "db range: [" + getMin(db) + ", " + getMax(db) + "]");
         android.util.Log.d("AudioPreprocessor", "norm range: [" + getMin(norm) + ", " + getMax(norm) + "]");
+        android.util.Log.d("AudioPreprocessor", "quant range: [" + getMin(quant) + ", " + getMax(quant) + "]");
         android.util.Log.d("AudioPreprocessor", "img[0][0]=" + img[0][0] + " img[112][112]=" + img[112][112]);
+
         return toVgg16Input(img);
+    }
+    private static short getMaxShort(short[] a) {
+        short max = 0;
+        for (short v : a) if (Math.abs(v) > Math.abs(max)) max = v;
+        return max;
     }
 
     private static double getMin(double[][] a) {

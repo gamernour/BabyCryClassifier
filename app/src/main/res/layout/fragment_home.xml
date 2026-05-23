@@ -3,115 +3,60 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F7F8FA">
+    android:background="#F0F4F8"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="28dp"
+        android:paddingBottom="32dp">
 
-        <!-- App title -->
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="👶"
+            android:textSize="36sp"
+            android:gravity="center"
+            android:layout_marginBottom="4dp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Baby Cry Classifier"
-            android:textSize="28sp"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="#1E3A5F"
             android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="6dp" />
 
-        <!-- Status card -->
+        <!-- Status pill -->
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ready"
+            android:textSize="13sp"
+            android:textColor="#64748B"
+            android:background="@drawable/bg_status_pill"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="28dp" />
+
+        <!-- AUTO DETECTION CARD -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="#FFFFFF">
-
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Ready — press a button below to start"
-                android:textSize="14sp"
-                android:textColor="#64748B"
-                android:gravity="center"
-                android:padding="16dp" />
-
-        </androidx.cardview.widget.CardView>
-
-        <!-- Section: Auto Detection -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="AUTO DETECTION"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="#94A3B8"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/startListeningButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="▶  Start Listening"
-            android:textSize="15sp"
-            android:backgroundTint="#0D9488"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/stopListeningButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="⏹  Stop Listening"
-            android:textSize="15sp"
-            android:backgroundTint="#64748B"
-            android:layout_marginBottom="24dp"
-            android:enabled="false" />
-
-        <!-- Section: Manual -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="MANUAL TEST"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="#94A3B8"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/recordButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="🎙  Record 3 Seconds"
-            android:textSize="15sp"
-            android:backgroundTint="#1E3A5F"
-    android:textColor="#FFFFFF"
-    android:layout_marginBottom="8dp" />
-
-        <Button
-            android:id="@+id/analyzeButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="🔍  Analyse"
-            android:textSize="15sp"
-            android:backgroundTint="#1E3A5F"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="32dp" />
-
-        <!-- Results card -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="2dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="3dp"
             app:cardBackgroundColor="#FFFFFF">
 
             <LinearLayout
@@ -123,39 +68,255 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="RESULT"
-                    android:textSize="11sp"
+                    android:text="🔁  Auto Listen"
+                    android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="#94A3B8"
-                    android:letterSpacing="0.1"
-                    android:layout_marginBottom="12dp" />
+                    android:letterSpacing="0.05"
+                    android:layout_marginBottom="14dp" />
 
-                <TextView
-                    android:id="@+id/topOneResult"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Most likely: —"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#0D9488"
-                    android:layout_marginBottom="8dp" />
+                    android:orientation="horizontal"
+                    android:weightSum="2">
 
-                <TextView
-                    android:id="@+id/topTwoResult"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Second possibility: —"
-                    android:textSize="15sp"
-                    android:textColor="#64748B" />
+                    <Button
+                        android:id="@+id/startListeningButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="▶  Start"
+                        android:textSize="15sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#0D9488"
+                        style="@style/Widget.MaterialComponents.Button" />
 
+                    <Button
+                        android:id="@+id/stopListeningButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="⏹  Stop"
+                        android:textSize="15sp"
+                        android:backgroundTint="#CBD5E1"
+                        android:textColor="#FFFFFF"
+                        android:enabled="false"
+                        style="@style/Widget.MaterialComponents.Button" />
+
+                </LinearLayout>
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
 
-        <View
+        <!-- MANUAL TEST CARD -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_height="24dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="🎙  Manual Test"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#94A3B8"
+                    android:letterSpacing="0.05"
+                    android:layout_marginBottom="14dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <Button
+                        android:id="@+id/recordButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="⏺  Record"
+                        android:textSize="15sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#1E3A5F"
+                        style="@style/Widget.MaterialComponents.Button" />
+
+                    <Button
+                        android:id="@+id/analyzeButton"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="🔍  Analyse"
+                        android:textSize="15sp"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#1E3A5F"
+                        style="@style/Widget.MaterialComponents.Button" />
+
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- RESULT CARD -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/resultCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Result"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#94A3B8"
+                    android:letterSpacing="0.05"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- TOP 1 row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+
+                    <!-- Color dot -->
+                    <View
+                        android:id="@+id/top1Dot"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:background="@drawable/bg_dot"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/topOneResult"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="—"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="#1E3A5F" />
+
+                        <TextView
+                            android:id="@+id/top1ConfidenceLabel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="13sp"
+                            android:textColor="#94A3B8" />
+
+                    </LinearLayout>
+
+                    <!-- % badge -->
+                    <TextView
+                        android:id="@+id/top1PercentBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E3A5F"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+                        android:background="@drawable/bg_percent_badge" />
+
+                </LinearLayout>
+
+                <!-- Divider — only shown when top2 is visible -->
+                <View
+                    android:id="@+id/resultDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#F1F5F9"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:visibility="gone" />
+
+                <!-- TOP 2 row — hidden when not needed -->
+                <LinearLayout
+                    android:id="@+id/top2Row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <View
+                        android:id="@+id/top2Dot"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:background="@drawable/bg_dot"
+                        android:layout_marginEnd="12dp" />
+
+                    <TextView
+                        android:id="@+id/topTwoResult"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text=""
+                        android:textSize="15sp"
+                        android:textColor="#475569" />
+
+                    <TextView
+                        android:id="@+id/top2PercentBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="13sp"
+                        android:textColor="#64748B"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="4dp"
+                        android:background="@drawable/bg_percent_badge_grey" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- DEV BUTTON (small, out of the way) -->
+        <Button
+            android:id="@+id/btnTestAssets"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Dev: Test 5 Classes"
+            android:textSize="11sp"
+            android:textColor="#94A3B8"
+            android:backgroundTint="#E2E8F0"
+            android:layout_gravity="center"
+            style="@style/Widget.MaterialComponents.Button" />
 
     </LinearLayout>
-
 </ScrollView>

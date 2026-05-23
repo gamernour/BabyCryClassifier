@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,9 +29,21 @@ public class HomeFragment extends Fragment {
     private static final int RECORD_SECONDS = 3;
     private static final int RECORD_SAMPLES = SAMPLE_RATE * RECORD_SECONDS;
 
-    private TextView statusText, top1Text, top2Text;
-    private Button   startListeningButton, stopListeningButton;
-    private Button   recordButton, analyzeButton;
+    // Color scale thresholds
+    private static final int GREEN_THRESHOLD  = 60;  // >= 60% → green  (very likely)
+    private static final int ORANGE_THRESHOLD = 30;  // >= 30% → orange (possible)
+    //                                                //  < 30% → red    (low confidence)
+
+    private static final int COLOR_GREEN  = 0xFF16A34A;
+    private static final int COLOR_ORANGE = 0xFFF97316;
+    private static final int COLOR_RED    = 0xFFDC2626;
+
+    private TextView    statusText, top1Text, top1ConfidenceLabel, top1PercentBadge;
+    private TextView    top2Text, top2PercentBadge;
+    private View        top1Dot, top2Dot, resultDivider;
+    private LinearLayout top2Row;
+    private Button      startListeningButton, stopListeningButton;
+    private Button      recordButton, analyzeButton;
 
     private short[]  recordedClip   = null;
     private boolean  serviceRunning = false;
@@ -63,7 +76,14 @@ public class HomeFragment extends Fragment {
 
         statusText           = view.findViewById(R.id.statusText);
         top1Text             = view.findViewById(R.id.topOneResult);
+        top1ConfidenceLabel  = view.findViewById(R.id.top1ConfidenceLabel);
+        top1PercentBadge     = view.findViewById(R.id.top1PercentBadge);
         top2Text             = view.findViewById(R.id.topTwoResult);
+        top2PercentBadge     = view.findViewById(R.id.top2PercentBadge);
+        top1Dot              = view.findViewById(R.id.top1Dot);
+        top2Dot              = view.findViewById(R.id.top2Dot);
+        resultDivider        = view.findViewById(R.id.resultDivider);
+        top2Row              = view.findViewById(R.id.top2Row);
         startListeningButton = view.findViewById(R.id.startListeningButton);
         stopListeningButton  = view.findViewById(R.id.stopListeningButton);
         recordButton         = view.findViewById(R.id.recordButton);
@@ -74,6 +94,9 @@ public class HomeFragment extends Fragment {
         recordButton.setOnClickListener(v         -> recordManualClip());
         analyzeButton.setOnClickListener(v        -> analyzeManualClip());
         updateListeningButtons();
+
+        view.findViewById(R.id.btnTestAssets).setOnClickListener(v ->
+                CryClassifier.testAssets(requireContext()));
     }
 
     @Override
@@ -94,11 +117,13 @@ public class HomeFragment extends Fragment {
         requireContext().unregisterReceiver(cryResultReceiver);
     }
 
+    // ─── Detection service ────────────────────────────────────────────────────
+
     private void startDetectionService() {
         ContextCompat.startForegroundService(requireContext(),
                 new Intent(requireContext(), CryDetectionService.class));
         serviceRunning = true;
-        statusText.setText("Listening for baby cry…");
+        statusText.setText("Listening…");
         clearResults();
         updateListeningButtons();
     }
@@ -106,14 +131,23 @@ public class HomeFragment extends Fragment {
     private void stopDetectionService() {
         requireContext().stopService(new Intent(requireContext(), CryDetectionService.class));
         serviceRunning = false;
-        statusText.setText("Detection stopped.");
+        statusText.setText("Stopped");
         updateListeningButtons();
     }
 
     private void updateListeningButtons() {
         startListeningButton.setEnabled(!serviceRunning);
         stopListeningButton.setEnabled(serviceRunning);
+        // Active state: teal; inactive: muted grey
+        startListeningButton.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(
+                        serviceRunning ? 0xFFCBD5E1 : 0xFF0D9488));
+        stopListeningButton.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(
+                        serviceRunning ? 0xFFEF4444 : 0xFFCBD5E1));
     }
+
+    // ─── Manual recording ─────────────────────────────────────────────────────
 
     private void recordManualClip() {
         if (ContextCompat.checkSelfPermission(requireContext(),
@@ -124,7 +158,7 @@ public class HomeFragment extends Fragment {
             return;
         }
 
-        statusText.setText("Recording " + RECORD_SECONDS + " s…");
+        statusText.setText("Recording 3 s…");
         recordButton.setEnabled(false);
         analyzeButton.setEnabled(false);
         recordedClip = null;
@@ -153,7 +187,7 @@ public class HomeFragment extends Fragment {
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
-                    statusText.setText("Recording done. Press Analyse.");
+                    statusText.setText("Done — tap Analyse");
                     recordButton.setEnabled(true);
                     analyzeButton.setEnabled(true);
                 });
@@ -188,21 +222,66 @@ public class HomeFragment extends Fragment {
                         showResult(finalResult.top1Label, finalResult.top1Percent,
                                 finalResult.top2Label, finalResult.top2Percent);
                     } else {
-                        statusText.setText("Classification failed. Check Logcat.");
+                        statusText.setText("Could not classify. Try again.");
                     }
                 });
             }
         }, "analyse-thread").start();
     }
 
+    // ─── Result display ───────────────────────────────────────────────────────
+
     private void showResult(String l1, int p1, String l2, int p2) {
-        statusText.setText("Cry classified!");
-        top1Text.setText("Most likely: " + l1 + " (" + p1 + "%)");
-        top2Text.setText("Second possibility: " + l2 + " (" + p2 + "%)");
+        statusText.setText("Result ready");
+
+        // --- Top 1 ---
+        top1Text.setText(l1);
+        top1PercentBadge.setText(p1 + "%");
+
+        int color1 = colorForPercent(p1);
+        top1Dot.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(color1));
+        top1PercentBadge.setTextColor(color1);
+        top1ConfidenceLabel.setText(confidenceLabel(p1));
+        top1ConfidenceLabel.setTextColor(color1);
+
+        // --- Top 2: only show if percent is meaningful (> 5%) ---
+        boolean showTop2 = p2 > 5 && l2 != null && !l2.isEmpty();
+        if (showTop2) {
+            top2Row.setVisibility(View.VISIBLE);
+            resultDivider.setVisibility(View.VISIBLE);
+            top2Text.setText(l2);
+            top2PercentBadge.setText(p2 + "%");
+            int color2 = colorForPercent(p2);
+            top2Dot.setBackgroundTintList(
+                    android.content.res.ColorStateList.valueOf(color2));
+        } else {
+            top2Row.setVisibility(View.GONE);
+            resultDivider.setVisibility(View.GONE);
+        }
+    }
+
+
+    private String confidenceLabel(int percent) {
+        if (percent >= GREEN_THRESHOLD)  return "Very likely";
+        if (percent >= ORANGE_THRESHOLD) return "Possible";
+        return "Low confidence";
+    }
+
+    /** Green ≥ 60%, Orange ≥ 30%, Red < 30% */
+    private int colorForPercent(int percent) {
+        if (percent >= GREEN_THRESHOLD)  return COLOR_GREEN;
+        if (percent >= ORANGE_THRESHOLD) return COLOR_ORANGE;
+        return COLOR_RED;
     }
 
     private void clearResults() {
-        top1Text.setText("");
-        top2Text.setText("");
+        top1Text.setText("—");
+        top1PercentBadge.setText("");
+        top1ConfidenceLabel.setText("");
+        top1Dot.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(0xFFCBD5E1));
+        top2Row.setVisibility(View.GONE);
+        resultDivider.setVisibility(View.GONE);
     }
 }

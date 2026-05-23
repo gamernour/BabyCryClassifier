@@ -38,10 +38,10 @@ public class CryDetectionService extends Service {
     private static final String CHANNEL_ID          = "CryDetectionChannel";
     private static final int    NOTIF_ID             = 1;
 
-    private static final int    SAMPLE_RATE          = 16_000;
     private static final int    CLIP_SECONDS         = 3;
-    private static final int    CLIP_SAMPLES         = SAMPLE_RATE * CLIP_SECONDS;
-
+    private static final int RECORD_SAMPLE_RATE = 48_000;  // what hardware actually uses
+    private static final int MODEL_SAMPLE_RATE  = 16_000;  // what model expects
+    private static final int CLIP_SAMPLES       = MODEL_SAMPLE_RATE * CLIP_SECONDS; // 48000 — unchanged
     private static final double ENERGY_THRESHOLD     = 500;
     private static final int    REQUIRED_LOUD_CHUNKS = 2;
     private static final int    ML_CHECK_INTERVAL    = 1;
@@ -53,7 +53,8 @@ public class CryDetectionService extends Service {
     private volatile boolean isListening   = false;
     private volatile boolean isVoting      = false;  // true during voting window
 
-    private final short[] ringBuffer = new short[CLIP_SAMPLES];
+    // Ring buffer holds 48kHz samples
+    private final short[] ringBuffer = new short[CLIP_SAMPLES * 3]; // 144000 samples at 48kHz
     private int     ringIndex        = 0;
     private boolean ringFilled       = false;
     private int     loudChunkCounter = 0;
@@ -124,12 +125,17 @@ public class CryDetectionService extends Service {
             return;
         }
 
-        int bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE,
+        int bufferSize = AudioRecord.getMinBufferSize(RECORD_SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
         audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
+                RECORD_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, bufferSize);
+        android.util.Log.d("SampleRate", "Requested: " + RECORD_SAMPLE_RATE
+                + " State: " + audioRecord.getState()
+                + " Actual format: " + audioRecord.getAudioFormat()
+                + " Actual channel: " + audioRecord.getChannelCount()
+                + " Actual rate: " + audioRecord.getSampleRate());
 
         if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
             stopSelf();
@@ -211,6 +217,16 @@ public class CryDetectionService extends Service {
             audioRecord.release();
             audioRecord = null;
         }
+    }
+    private static short[] downsampleTo16k(short[] input48k) {
+        short[] out = new short[input48k.length / 3];
+        for (int i = 0; i < out.length; i++) {
+            int sum = input48k[i * 3];
+            if (i * 3 + 1 < input48k.length) sum += input48k[i * 3 + 1];
+            if (i * 3 + 2 < input48k.length) sum += input48k[i * 3 + 2];
+            out[i] = (short)(sum / 3);
+        }
+        return out;
     }
 
     private void resumeListening() {
@@ -332,22 +348,30 @@ public class CryDetectionService extends Service {
     }
 
     private void writeToRingBuffer(short[] src, int len) {
+        int ringSize = CLIP_SAMPLES * 3;
         for (int i = 0; i < len; i++) {
             ringBuffer[ringIndex] = src[i];
-            if (++ringIndex >= CLIP_SAMPLES) { ringIndex = 0; ringFilled = true; }
+            if (++ringIndex >= ringSize) { ringIndex = 0; ringFilled = true; }
         }
     }
 
     private short[] drainRingBuffer() {
-        short[] clip = new short[CLIP_SAMPLES];
+        short[] clip48k = new short[CLIP_SAMPLES * 3];
         if (!ringFilled) {
-            System.arraycopy(ringBuffer, 0, clip, 0, ringIndex);
-            return clip;
+            System.arraycopy(ringBuffer, 0, clip48k, 0, ringIndex);
+        } else {
+            int pos = 0;
+            for (int i = ringIndex; i < clip48k.length; i++) clip48k[pos++] = ringBuffer[i];
+            for (int i = 0; i < ringIndex;              i++) clip48k[pos++] = ringBuffer[i];
         }
-        int pos = 0;
-        for (int i = ringIndex; i < CLIP_SAMPLES; i++) clip[pos++] = ringBuffer[i];
-        for (int i = 0; i < ringIndex;             i++) clip[pos++] = ringBuffer[i];
-        return clip;
+        short[] clip16k = downsampleTo16k(clip48k);
+        android.util.Log.d("RingBuffer", "ringFilled=" + ringFilled
+                + " ringIndex=" + ringIndex
+                + " clip48k length=" + clip48k.length
+                + " clip16k length=" + clip16k.length
+                + " clip16k[0]=" + clip16k[0]
+                + " clip16k[24000]=" + clip16k[24000]);
+        return downsampleTo16k(clip48k);
     }
 
     private static double computeRMS(short[] buf, int len) {

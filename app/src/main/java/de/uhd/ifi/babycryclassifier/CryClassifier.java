@@ -82,6 +82,145 @@ public class CryClassifier {
         return buf;
     }
 
+    // ── Asset test ────────────────────────────────────────────────────────────
+
+    public static void testAssets(Context context) {
+        String[] assets = {"1__11_.mp3", "2__33_.mp3", "3__4_.mp3", "4__5_.mp3", "5__8_.mp3", "test_1.wav", "test_105.wav"};
+        String[] names  = {"eairh (belly pain)", "eh (need to burp)", "heh (discomfort)",
+                "neh (hunger)", "owh (tiredness)", "unknown baby 1", "test_105 (unknown)"};
+
+        new Thread(() -> {
+            try {
+                CryClassifier classifier = new CryClassifier(context);
+                android.util.Log.d("AssetTest", "=== STARTING ASSET TEST ===");
+
+                for (int i = 0; i < assets.length; i++) {
+                    try {
+                        short[] pcm = decodeAssetToPcm(context, assets[i]);
+                        android.util.Log.d("AssetTest",
+                                names[i] + " decoded: " + pcm.length + " samples "
+                                        + "(" + (pcm.length / 16000f) + "s at 16kHz)");
+
+                        PredictionResult r = classifier.predict(pcm);
+                        android.util.Log.d("AssetTest",
+                                "  → Top1: " + r.top1Label + " (" + r.top1Percent + "%)"
+                                        + "  Top2: " + r.top2Label + " (" + r.top2Percent + "%)");
+
+                    } catch (Exception e) {
+                        android.util.Log.e("AssetTest", names[i] + " FAILED: " + e.getMessage());
+                    }
+                }
+                android.util.Log.d("AssetTest", "=== ASSET TEST DONE ===");
+
+            } catch (Exception e) {
+                android.util.Log.e("AssetTest", "Classifier init failed: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    //Step1: Decode audio file MP3/WAV file → decoded to raw PCM using MediaCodec
+    private static short[] decodeAssetToPcm(Context context, String assetName) throws Exception {
+        AssetFileDescriptor afd = context.getAssets().openFd(assetName);
+
+        //set up MediaExtractor to read the file
+        android.media.MediaExtractor extractor = new android.media.MediaExtractor();
+        extractor.setDataSource(afd.getFileDescriptor(),
+                afd.getStartOffset(), afd.getDeclaredLength());
+        extractor.selectTrack(0);
+
+        //get the audio format (MP3, AAC etc.)
+        android.media.MediaFormat format = extractor.getTrackFormat(0);
+        String mime = format.getString(android.media.MediaFormat.KEY_MIME);
+        int nativeSr = format.getInteger(android.media.MediaFormat.KEY_SAMPLE_RATE);
+        android.util.Log.d("AssetTest", assetName + " native SR: " + nativeSr);
+
+        //create the decoder for this format
+        android.media.MediaCodec codec = android.media.MediaCodec.createDecoderByType(mime);
+        codec.configure(format, null, null, 0);
+        codec.start();
+
+        //feed compressed audio into decoder, read raw PCM out
+        java.util.ArrayList<Short> pcmList = new java.util.ArrayList<>();
+        android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
+        boolean inputDone = false;
+
+        while (true) {
+            if (!inputDone) {
+                int inIdx = codec.dequeueInputBuffer(10000);
+                if (inIdx >= 0) {
+                    java.nio.ByteBuffer inBuf = codec.getInputBuffer(inIdx);
+                    int sampleSize = extractor.readSampleData(inBuf, 0);
+                    if (sampleSize < 0) {
+                        codec.queueInputBuffer(inIdx, 0, 0, 0,
+                                android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                        inputDone = true;
+                    } else {
+                        codec.queueInputBuffer(inIdx, 0, sampleSize,
+                                extractor.getSampleTime(), 0);
+                        extractor.advance();
+                    }
+                }
+            }
+
+            int outIdx = codec.dequeueOutputBuffer(info, 10000);
+            if (outIdx >= 0) {
+                java.nio.ByteBuffer outBuf = codec.getOutputBuffer(outIdx);
+                while (outBuf.remaining() >= 2) {
+                    pcmList.add(outBuf.getShort());
+                }
+                codec.releaseOutputBuffer(outIdx, false);
+                if ((info.flags & android.media.MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) break;
+            }
+        }
+
+        codec.stop();
+        codec.release();
+        extractor.release();
+        afd.close();
+
+        // Check number of channels
+        int channels = format.containsKey(android.media.MediaFormat.KEY_CHANNEL_COUNT)
+                ? format.getInteger(android.media.MediaFormat.KEY_CHANNEL_COUNT) : 1;
+        android.util.Log.d("AssetTest", assetName + " channels: " + channels);
+
+        short[] pcmNative = new short[pcmList.size()];
+        for (int i = 0; i < pcmNative.length; i++) pcmNative[i] = pcmList.get(i);
+
+        //Step2: Convert stereo to mono by taking left channel only
+        if (channels == 2) {
+            short[] mono = new short[pcmNative.length / 2];
+            for (int i = 0; i < mono.length; i++) {
+                mono[i] = pcmNative[i * 2]; // take left channel
+            }
+            pcmNative = mono;
+            android.util.Log.d("AssetTest", "Stereo→mono: " + (mono.length * 2) + " → " + mono.length);
+        }
+
+        if (nativeSr != 16000) {
+            return resampleTo16k(pcmNative, nativeSr);
+        }
+        return pcmNative;
+    }
+
+    //Step 3:  Resample to 16kHz using linear interpolation
+    private static short[] resampleTo16k(short[] input, int nativeSr) {
+        double ratio = (double) nativeSr / 16000.0;
+        int outLen = (int)(input.length / ratio);
+        short[] out = new short[outLen];
+        for (int i = 0; i < outLen; i++) {
+            double srcPos = i * ratio;
+            int srcIdx = (int) srcPos;
+            double frac = srcPos - srcIdx;
+            int nextIdx = Math.min(srcIdx + 1, input.length - 1);
+            out[i] = (short)(input[srcIdx] * (1.0 - frac) + input[nextIdx] * frac);
+        }
+        android.util.Log.d("AssetTest", "Resampled " + nativeSr + "Hz→16000Hz: "
+                + input.length + " → " + out.length + " samples");
+        return out;
+    }
+
+    // ── Result ────────────────────────────────────────────────────────────────
+
     public static class PredictionResult {
         public final String top1Label;
         public final int    top1Percent;
