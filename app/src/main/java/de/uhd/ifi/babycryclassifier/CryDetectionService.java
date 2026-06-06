@@ -42,12 +42,20 @@ public class CryDetectionService extends Service {
     private static final int RECORD_SAMPLE_RATE = 48_000;  // what hardware actually uses
     private static final int MODEL_SAMPLE_RATE  = 16_000;  // what model expects
     private static final int CLIP_SAMPLES       = MODEL_SAMPLE_RATE * CLIP_SECONDS; // 48000 — unchanged
-    private static final double ENERGY_THRESHOLD     = 500;
-    private static final int    REQUIRED_LOUD_CHUNKS = 2;
+    //private static final double ENERGY_THRESHOLD     = 500;
+    //private static final int    REQUIRED_LOUD_CHUNKS = 2;
     private static final int    ML_CHECK_INTERVAL    = 1;
 
     private static final int    VOTING_WINDOW_MS     = 10_000;
     private static final int    VOTING_INTERVAL_MS   = 2_000;
+
+    // ── Normalization constants ───────────────────────────────────────────────
+    // Target RMS level — matches approximate RMS of Dunstan training clips.
+    // If mic clips are too quiet/loud this brings them to the same level.
+    private static final double TARGET_RMS           = 1500.0;
+    // Pre-emphasis coefficient — boosts high frequencies suppressed by mic.
+    // Standard value used in speech/audio processing (0.95–0.97).
+    private static final float  PRE_EMPHASIS         = 0.97f;
 
     private AudioRecord      audioRecord;
     private volatile boolean isListening   = false;
@@ -57,7 +65,7 @@ public class CryDetectionService extends Service {
     private final short[] ringBuffer = new short[CLIP_SAMPLES * 3]; // 144000 samples at 48kHz
     private int     ringIndex        = 0;
     private boolean ringFilled       = false;
-    private int     loudChunkCounter = 0;
+    //private int     loudChunkCounter = 0;
     private int     mlCheckCounter   = 0;
     private static final int REQUIRED_ML_PASSES = 3;
     private int mlPassCounter = 0;
@@ -144,7 +152,7 @@ public class CryDetectionService extends Service {
 
         ringIndex        = 0;
         ringFilled       = false;
-        loudChunkCounter = 0;
+        //loudChunkCounter = 0;
         mlCheckCounter   = 0;
         isVoting         = false;
 
@@ -163,7 +171,7 @@ public class CryDetectionService extends Service {
                 if (isVoting) continue;  // skip gate checks during voting window
 
                 // Gate 1: energy
-                double rms = computeRMS(buffer, read);
+               /* double rms = computeRMS(buffer, read);
                 if (rms > ENERGY_THRESHOLD) {
                     loudChunkCounter++;
                     android.util.Log.d("CryDetection",
@@ -174,16 +182,23 @@ public class CryDetectionService extends Service {
                 }
 
                 if (loudChunkCounter < REQUIRED_LOUD_CHUNKS) continue;
+                */
+                mlCheckCounter++;
+                if (mlCheckCounter % ML_CHECK_INTERVAL != 0) continue;
 
                 // Gate 2: ML binary model
-                mlCheckCounter++;
                 if (mlCheckCounter % ML_CHECK_INTERVAL != 0) continue;
 
                 short[] clip = drainRingBuffer();
 
                 if (cryDetector != null) {
-                    float   prob  = cryDetector.crySoftmax(clip);
+                    //float   prob  = cryDetector.crySoftmax(clip);
+                    //boolean isCry = cryDetector.isCry(clip);
+
+                    float prob = cryDetector.crySoftmax(clip);
+                    android.util.Log.d("CryDetector", "cry prob: " + prob + " threshold: 0.4");
                     boolean isCry = cryDetector.isCry(clip);
+
                     android.util.Log.d("CryDetection",
                             "ML prob: " + prob + " isCry: " + isCry);
                     if (!isCry) {
@@ -201,7 +216,7 @@ public class CryDetectionService extends Service {
                 // Set isVoting so recording thread keeps filling ring buffer
                 // but skips gate checks
                 isVoting = true;
-                loudChunkCounter = 0;
+                //loudChunkCounter = 0;
                 mlCheckCounter   = 0;
                 final short[] firstClip = clip;
                 new Thread(() -> startVotingWindow(firstClip), "voting-thread").start();
@@ -228,13 +243,93 @@ public class CryDetectionService extends Service {
         }
         return out;
     }
+    // ── Normalization ─────────────────────────────────────────────────────────
 
-    private void resumeListening() {
-        stopListening();
-        startListening();
+    /**
+     * RMS normalization — scales the clip so its RMS energy matches TARGET_RMS.
+     * This compensates for the mic being quieter or louder than the training data.
+     */
+    private static short[] rmsNormalize(short[] clip) {
+        double rms = computeRMS(clip, clip.length);
+        if (rms < 1.0) return clip;  // silence — don't amplify noise
+
+        double gain = TARGET_RMS / rms;
+        // Cap gain to avoid over-amplifying very quiet non-cry sounds
+        gain = Math.min(gain, 10.0);
+
+        short[] out = new short[clip.length];
+        for (int i = 0; i < clip.length; i++) {
+            out[i] = (short) Math.max(Short.MIN_VALUE,
+                    Math.min(Short.MAX_VALUE, (long)(clip[i] * gain)));
+        }
+        android.util.Log.d("Normalization", "RMS: " + rms + " gain: " + gain);
+        return out;
     }
 
-    //Voting window
+    /**
+     * Pre-emphasis filter — boosts high frequencies that the mic tends to suppress.
+     * y[n] = x[n] - PRE_EMPHASIS * x[n-1]
+     * Standard in speech/audio processing to compensate for mic roll-off.
+     */
+    private static short[] preEmphasis(short[] clip) {
+        short[] out = new short[clip.length];
+        out[0] = clip[0];
+        for (int i = 1; i < clip.length; i++) {
+            float val = clip[i] - PRE_EMPHASIS * clip[i - 1];
+            out[i] = (short) Math.max(Short.MIN_VALUE,
+                    Math.min(Short.MAX_VALUE, val));
+        }
+        return out;
+    }
+
+    // ── Ring buffer ───────────────────────────────────────────────────────────
+
+    private void writeToRingBuffer(short[] src, int len) {
+        int ringSize = CLIP_SAMPLES * 3;
+        for (int i = 0; i < len; i++) {
+            ringBuffer[ringIndex] = src[i];
+            if (++ringIndex >= ringSize) { ringIndex = 0; ringFilled = true; }
+        }
+    }
+
+    /**
+     * Drains the ring buffer, downsamples to 16kHz, then applies:
+     *   1. RMS normalization
+     *   2. Pre-emphasis filter
+     * before returning the clip to the classifier.
+     */
+    private short[] drainRingBuffer() {
+        short[] clip48k = new short[CLIP_SAMPLES * 3];
+        if (!ringFilled) {
+            System.arraycopy(ringBuffer, 0, clip48k, 0, ringIndex);
+        } else {
+            int pos = 0;
+            for (int i = ringIndex; i < clip48k.length; i++) clip48k[pos++] = ringBuffer[i];
+            for (int i = 0; i < ringIndex;              i++) clip48k[pos++] = ringBuffer[i];
+        }
+
+        // Step 1 — downsample 48kHz → 16kHz
+        short[] clip16k = downsampleTo16k(clip48k);
+
+        // Step 2 — RMS normalization
+        clip16k = rmsNormalize(clip16k);
+
+        // Step 3 — pre-emphasis
+        clip16k = preEmphasis(clip16k);
+
+        android.util.Log.d("RingBuffer", "clip16k length=" + clip16k.length
+                + " clip16k[0]=" + clip16k[0]);
+        return clip16k;
+    }
+
+
+//Voting window
+//   1. insert() now uses insertForId() so we get the database row id back
+//   2. After voting ends, launches FlashActivity (full-screen result)
+//      instead of only sending a broadcast — the broadcast now goes out
+//      from FlashActivity itself so HomeFragment still updates correctly
+//   3. The record id is passed through to FlashActivity → FeedbackActivity
+//      so the 5-minute feedback answer can be saved to the right row
 
     private void startVotingWindow(short[] firstClip) {
         updateNotification("Cry detected! Analysing…");
@@ -249,19 +344,17 @@ public class CryDetectionService extends Service {
             classifier = new CryClassifier(this);
         } catch (Exception e) {
             android.util.Log.e("CryDetection", "Failed to load classifier", e);
-            isVoting = false;
+            //isVoting = false;
             return;
         }
 
         // Classify first clip immediately
         classifyAndVote(firstClip, classifier, votes, totalPct);
 
-        // Classify every 2 seconds for 10 second window
+        // Classify every 2 seconds for 10-second window
         while (System.currentTimeMillis() - windowStart < VOTING_WINDOW_MS) {
             try { Thread.sleep(VOTING_INTERVAL_MS); } catch (InterruptedException ignored) {}
             if (System.currentTimeMillis() - windowStart >= VOTING_WINDOW_MS) break;
-
-            // Ring buffer is still being filled by recording thread
             short[] clip = drainRingBuffer();
             classifyAndVote(clip, classifier, votes, totalPct);
         }
@@ -278,20 +371,37 @@ public class CryDetectionService extends Service {
                 ? Math.round((float) votes.getOrDefault(second, 0) / totalVotes * 100) : 0;
 
         android.util.Log.d("CryDetection",
-                "Voting done: " + winner + " (" + confidence + "%) from "
-                        + totalVotes + " votes");
+                "Voting done: " + winner + " (" + confidence + "%) from " + totalVotes + " votes");
 
-        // Save to database
-        CryRepository.getInstance(getApplicationContext()).insert(
-                new CryRecord(detectedAt, winner, confidence, second, secondPct));
+        // ── Save to database and get the row id back ──────────────────────────
+        int recordId = -1;
+        try {
+            java.util.concurrent.Future<Long> future =
+                    CryRepository.getInstance(getApplicationContext())
+                            .insertForId(new CryRecord(detectedAt, winner, confidence, second, secondPct));
+            recordId = future.get().intValue();   // blocks briefly — we're already on a bg thread
+        } catch (Exception e) {
+            android.util.Log.e("CryDetection", "DB insert failed", e);
+        }
 
-        // Final broadcast
-        broadcastResult(winner, confidence, second, secondPct);
+        // ── Launch FlashActivity (full-screen result for 5 seconds) ──────────
+        Intent flashIntent = new Intent(this, FlashActivity.class);
+        flashIntent.putExtra(MainActivity.EXTRA_TOP1_LABEL,   winner);
+        flashIntent.putExtra(MainActivity.EXTRA_TOP1_PERCENT, confidence);
+        flashIntent.putExtra(MainActivity.EXTRA_TOP2_LABEL,   second);
+        flashIntent.putExtra(MainActivity.EXTRA_TOP2_PERCENT, secondPct);
+        flashIntent.putExtra(FlashActivity.EXTRA_RECORD_ID,   recordId);
+        flashIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(flashIntent);
+
         updateNotification("Baby is crying: " + winner + " (" + confidence + "%)");
 
-        // Resume detection
-        isVoting = false;
+        // Cooldown — wait 30 seconds before listening for the next cry
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            isVoting = false;
+        }, 30_000);
     }
+
 
     private void classifyAndVote(short[] clip,
                                  CryClassifier classifier,
@@ -347,32 +457,7 @@ public class CryDetectionService extends Service {
         sendBroadcast(broadcast);
     }
 
-    private void writeToRingBuffer(short[] src, int len) {
-        int ringSize = CLIP_SAMPLES * 3;
-        for (int i = 0; i < len; i++) {
-            ringBuffer[ringIndex] = src[i];
-            if (++ringIndex >= ringSize) { ringIndex = 0; ringFilled = true; }
-        }
-    }
 
-    private short[] drainRingBuffer() {
-        short[] clip48k = new short[CLIP_SAMPLES * 3];
-        if (!ringFilled) {
-            System.arraycopy(ringBuffer, 0, clip48k, 0, ringIndex);
-        } else {
-            int pos = 0;
-            for (int i = ringIndex; i < clip48k.length; i++) clip48k[pos++] = ringBuffer[i];
-            for (int i = 0; i < ringIndex;              i++) clip48k[pos++] = ringBuffer[i];
-        }
-        short[] clip16k = downsampleTo16k(clip48k);
-        android.util.Log.d("RingBuffer", "ringFilled=" + ringFilled
-                + " ringIndex=" + ringIndex
-                + " clip48k length=" + clip48k.length
-                + " clip16k length=" + clip16k.length
-                + " clip16k[0]=" + clip16k[0]
-                + " clip16k[24000]=" + clip16k[24000]);
-        return downsampleTo16k(clip48k);
-    }
 
     private static double computeRMS(short[] buf, int len) {
         double sum = 0;

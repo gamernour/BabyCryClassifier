@@ -11,13 +11,11 @@ import java.util.List;
 public interface CryDao {
 
     @Insert
-    void insert(CryRecord record);
+    long insert(CryRecord record);
 
-    /** All cries, newest first — observed as LiveData so UI updates automatically. */
     @Query("SELECT * FROM cry_history ORDER BY timestamp DESC")
     LiveData<List<CryRecord>> getAllCries();
 
-    /** Last 50 cries for the history screen. */
     @Query("SELECT * FROM cry_history ORDER BY timestamp DESC LIMIT 50")
     LiveData<List<CryRecord>> getRecentCries();
 
@@ -26,4 +24,8 @@ public interface CryDao {
 
     @Query("SELECT COUNT(*) FROM cry_history")
     int getCount();
+
+    /** Called when the parent answers the 5-minute feedback prompt. */
+    @Query("UPDATE cry_history SET userFeedback = :feedback WHERE id = :id")
+    void updateFeedback(int id, String feedback);
 }

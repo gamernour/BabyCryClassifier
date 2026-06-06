@@ -68,7 +68,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🔁  Auto Listen"
+                    android:text="Auto Listen"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="#94A3B8"
@@ -87,7 +87,7 @@
                         android:layout_height="52dp"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
-                        android:text="▶  Start"
+                        android:text="Start"
                         android:textSize="15sp"
                         android:textColor="#FFFFFF"
                         android:backgroundTint="#0D9488"
@@ -99,7 +99,7 @@
                         android:layout_height="52dp"
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
-                        android:text="⏹  Stop"
+                        android:text="Stop"
                         android:textSize="15sp"
                         android:backgroundTint="#CBD5E1"
                         android:textColor="#FFFFFF"
@@ -110,64 +110,44 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- MANUAL TEST CARD -->
-        <androidx.cardview.widget.CardView
+        <!-- MANUAL TEST — centered round button, no card -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="3dp"
-            app:cardBackgroundColor="#FFFFFF">
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_marginBottom="16dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/recordButton"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="10dp"
+                android:backgroundTint="#EF4444"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text=""
+                app:cornerRadius="50dp"
+                app:icon="@android:drawable/ic_btn_speak_now"
+                app:iconTint="#FFFFFF"
+                app:iconSize="36dp"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                style="@style/Widget.MaterialComponents.Button" />
+
+            <TextView
+                android:id="@+id/recordHintText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:text="Tap to record &amp; classify"
+                android:textSize="13sp"
+                android:textColor="#94A3B8"
+                android:layout_gravity="center" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="🎙  Manual Test"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textColor="#94A3B8"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="14dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="2">
-
-                    <Button
-                        android:id="@+id/recordButton"
-                        android:layout_width="0dp"
-                        android:layout_height="52dp"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
-                        android:text="⏺  Record"
-                        android:textSize="15sp"
-                        android:textColor="#FFFFFF"
-                        android:backgroundTint="#1E3A5F"
-                        style="@style/Widget.MaterialComponents.Button" />
-
-                    <Button
-                        android:id="@+id/analyzeButton"
-                        android:layout_width="0dp"
-                        android:layout_height="52dp"
-                        android:layout_weight="1"
-                        android:layout_marginStart="6dp"
-                        android:text="🔍  Analyse"
-                        android:textSize="15sp"
-                        android:textColor="#FFFFFF"
-                        android:backgroundTint="#1E3A5F"
-                        style="@style/Widget.MaterialComponents.Button" />
-
-                </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </LinearLayout>
 
         <!-- RESULT CARD -->
         <androidx.cardview.widget.CardView
@@ -195,7 +175,6 @@
                     android:letterSpacing="0.05"
                     android:layout_marginBottom="16dp" />
 
-                <!-- TOP 1 row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -203,7 +182,6 @@
                     android:gravity="center_vertical"
                     android:layout_marginBottom="4dp">
 
-                    <!-- Color dot -->
                     <View
                         android:id="@+id/top1Dot"
                         android:layout_width="14dp"
@@ -236,7 +214,6 @@
 
                     </LinearLayout>
 
-                    <!-- % badge -->
                     <TextView
                         android:id="@+id/top1PercentBadge"
                         android:layout_width="wrap_content"
@@ -253,7 +230,6 @@
 
                 </LinearLayout>
 
-                <!-- Divider — only shown when top2 is visible -->
                 <View
                     android:id="@+id/resultDivider"
                     android:layout_width="match_parent"
@@ -263,7 +239,6 @@
                     android:layout_marginBottom="12dp"
                     android:visibility="gone" />
 
-                <!-- TOP 2 row — hidden when not needed -->
                 <LinearLayout
                     android:id="@+id/top2Row"
                     android:layout_width="match_parent"
@@ -302,21 +277,9 @@
                         android:background="@drawable/bg_percent_badge_grey" />
 
                 </LinearLayout>
-
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- DEV BUTTON (small, out of the way) -->
-        <Button
-            android:id="@+id/btnTestAssets"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="Dev: Test 5 Classes"
-            android:textSize="11sp"
-            android:textColor="#94A3B8"
-            android:backgroundTint="#E2E8F0"
-            android:layout_gravity="center"
-            style="@style/Widget.MaterialComponents.Button" />
 
     </LinearLayout>
 </ScrollView>

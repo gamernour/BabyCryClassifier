@@ -24,7 +24,7 @@ import java.nio.channels.FileChannel;
 public class CryDetector {
 
     private static final String MODEL_FILE = "cry_detector.tflite";
-    private static final float  THRESHOLD  = 0.15f;   // TODO adjust after evaluating on real audio
+    private static final float  THRESHOLD  = 0.4f;
 
     // Must match train_cry_detector.py
     private static final int   SR          = 8_000;
@@ -50,6 +50,7 @@ public class CryDetector {
 
 
     /** Returns true when the audio clip is classified as crying. */
+
     public boolean isCry(short[] audioClip) {
         return crySoftmax(audioClip) >= THRESHOLD;
     }

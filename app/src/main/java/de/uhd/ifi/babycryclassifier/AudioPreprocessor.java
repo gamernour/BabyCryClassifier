@@ -33,6 +33,7 @@ public class AudioPreprocessor {
     private static final float F_MAX    = SAMPLE_RATE / 2f;   // 8 000 Hz
 
     private static final int IMAGE_SIZE = 224;
+    public static double[][] lastSpectrogram = null;   // exposed for debug saving
 
     // Pre-computed Mel filterbank  [N_MELS × (N_FFT/2+1)]
     private static final float[][] MEL_FILTERS = buildMelFilterbank();
@@ -51,6 +52,7 @@ public class AudioPreprocessor {
         double[][] mel   = computeMelSpectrogram(audio, hann);
         double[][] norm  = normaliseTo255(powerToDb(mel));
         double[][] quant = quantiseToUint8(norm);
+        lastSpectrogram  = quant;
         double[][] img   = bicubicResize(quant, IMAGE_SIZE, IMAGE_SIZE);
         android.util.Log.d("Preprocess", "mel max=" + getMax(mel));
         android.util.Log.d("AudioPreprocessor", "mel range: [" + getMin(mel) + ", " + getMax(mel) + "]");
@@ -292,6 +294,48 @@ public class AudioPreprocessor {
             }
         }
         return input;
+    }
+    public static void saveSpectrogramPng(android.content.Context context, String label) {
+        if (lastSpectrogram == null) {
+            android.util.Log.e("Spectrogram", "No spectrogram to save yet");
+            return;
+        }
+        try {
+            double[][] spec = lastSpectrogram;
+            int rows = spec.length;       // 128 mel bands
+            int cols = spec[0].length;    // ~184 time frames
+
+            android.graphics.Bitmap bmp =
+                    android.graphics.Bitmap.createBitmap(cols, rows,
+                            android.graphics.Bitmap.Config.ARGB_8888);
+
+            for (int m = 0; m < rows; m++) {
+                for (int t = 0; t < cols; t++) {
+                    int v = (int) Math.max(0, Math.min(255, spec[m][t]));
+                    int color = android.graphics.Color.rgb(v, v, v);
+                    bmp.setPixel(t, rows - 1 - m, color);  // flip vertically
+                }
+            }
+
+            android.graphics.Bitmap scaled =
+                    android.graphics.Bitmap.createScaledBitmap(bmp, 512, 256, false);
+
+            java.io.File dir = context.getExternalFilesDir(null);
+            if (dir == null) {
+                android.util.Log.e("Spectrogram", "External files dir not available");
+                return;
+            }
+            String safeName = label != null ? label.replace(" ", "_") : "unknown";
+            java.io.File outFile = new java.io.File(dir, "spectrogram_java_" + safeName + ".png");
+
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(outFile)) {
+                scaled.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos);
+            }
+            android.util.Log.d("Spectrogram", "Saved → " + outFile.getAbsolutePath());
+
+        } catch (Exception e) {
+            android.util.Log.e("Spectrogram", "Failed to save spectrogram", e);
+        }
     }
 
     // Mel filterbank  [N_MELS × (N_FFT/2+1)]  — HTK triangular filters

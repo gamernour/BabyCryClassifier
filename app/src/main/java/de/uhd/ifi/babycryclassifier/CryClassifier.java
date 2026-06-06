@@ -23,8 +23,10 @@ public class CryClassifier {
     private static final String[] CODES = {"eairh", "eh", "heh", "neh", "owh"};
 
     private final Interpreter interpreter;
+    private final android.content.Context context;
 
     public CryClassifier(Context context) throws Exception {
+        this.context = context;
         Interpreter.Options options = new Interpreter.Options();
         options.setNumThreads(2);
         interpreter = new Interpreter(loadModelFile(context), options);
@@ -37,8 +39,13 @@ public class CryClassifier {
 
     public PredictionResult predict(short[] audioClip) {
         float[][][][] input = AudioPreprocessor.preprocessAudioClip(audioClip);
-        float[]       probs = runInference(input);
-        return buildResult(probs);
+        float[] probs = runInference(input);
+        PredictionResult result = buildResult(probs);
+        // ── DEBUG: save spectrogram image for comparison with Python ─────────────
+        // Remove this block once you've done the comparison
+        AudioPreprocessor.saveSpectrogramPng(context, result.top1Label);
+        // ─────────────────────────────────────────────────────────────────────────
+        return result;
     }
 
     private float[] runInference(float[][][][] input) {
@@ -70,7 +77,9 @@ public class CryClassifier {
 
     private MappedByteBuffer loadModelFile(Context context) throws Exception {
         AssetFileDescriptor fd =
-                context.getAssets().openFd("final_vgg16_dynamic_quant.tflite");
+                //TEST!!!
+                context.getAssets().openFd("final_vgg16_mic_finetuned_quant.tflite");
+               // context.getAssets().openFd("final_vgg16_dynamic_quant.tflite");
         FileInputStream fis = new FileInputStream(fd.getFileDescriptor());
         FileChannel fc = fis.getChannel();
         MappedByteBuffer buf = fc.map(
@@ -85,9 +94,11 @@ public class CryClassifier {
     // ── Asset test ────────────────────────────────────────────────────────────
 
     public static void testAssets(Context context) {
-        String[] assets = {"1__11_.mp3", "2__33_.mp3", "3__4_.mp3", "4__5_.mp3", "5__8_.mp3", "test_1.wav", "test_105.wav"};
-        String[] names  = {"eairh (belly pain)", "eh (need to burp)", "heh (discomfort)",
-                "neh (hunger)", "owh (tiredness)", "unknown baby 1", "test_105 (unknown)"};
+        String[] assets = {"test_1.wav"};
+        String[] names  = {"test_1"};
+        //String[] assets = {"1__11_.mp3", "2__33_.mp3", "3__4_.mp3", "4__5_.mp3", "5__8_.mp3", "test_1.wav", "test_105.wav"};
+        //String[] names  = {"eairh (belly pain)", "eh (need to burp)", "heh (discomfort)",
+         //       "neh (hunger)", "owh (tiredness)", "unknown baby 1", "test_105 (unknown)"};
 
         new Thread(() -> {
             try {

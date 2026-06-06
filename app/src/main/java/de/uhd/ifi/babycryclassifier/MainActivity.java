@@ -1,10 +1,14 @@
 package de.uhd.ifi.babycryclassifier;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -27,10 +31,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         requestPermissions();
+        checkExactAlarmPermission();
 
         // Load HomeFragment by default
         if (savedInstanceState == null) {
             loadFragment(new HomeFragment());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                android.app.NotificationChannel ch = new android.app.NotificationChannel(
+                        "CryDetectionChannel",
+                        "Cry Detection",
+                        android.app.NotificationManager.IMPORTANCE_HIGH);
+                ch.setDescription("Baby cry feedback");
+                ch.enableVibration(true);
+                android.app.NotificationManager nm = getSystemService(android.app.NotificationManager.class);
+                if (nm != null) nm.createNotificationChannel(ch);
+            }
         }
 
         // Bottom navigation switching
@@ -61,5 +76,31 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.POST_NOTIFICATIONS}
                 : new String[]{Manifest.permission.RECORD_AUDIO};
         ActivityCompat.requestPermissions(this, perms, PERMISSION_REQUEST_CODE);
+    }
+
+    /**
+     * On Android 12+ (S), SCHEDULE_EXACT_ALARM requires the user to grant permission
+     * manually in Settings if they previously denied it.
+     * Without it the 5-minute feedback notification won't fire on time.
+     */
+    private void checkExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+            if (am != null && !am.canScheduleExactAlarms()) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Allow exact alarms")
+                        .setMessage(
+                                "This app uses a 5-minute timer to ask whether a cry was " +
+                                        "classified correctly. Please allow exact alarms in the next screen.")
+                        .setPositiveButton("Open settings", (d, w) -> {
+                            Intent intent = new Intent(
+                                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                                    Uri.parse("package:" + getPackageName()));
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Skip", null)
+                        .show();
+            }
+        }
     }
 }
