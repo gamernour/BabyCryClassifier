@@ -16,7 +16,7 @@ public class FlashActivity extends Activity {
 
     public static final String EXTRA_RECORD_ID = "record_id";
 
-    private static final long FLASH_DURATION_MS = 5_000;
+    private static final long FLASH_DURATION_MS = 1_500;
     private static final long FEEDBACK_DELAY_MS = 2 * 1_000;  // 2 seconds
 
     private static final Object[][] CLASS_CONFIG = {

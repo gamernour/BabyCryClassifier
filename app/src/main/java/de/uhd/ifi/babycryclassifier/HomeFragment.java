@@ -23,11 +23,17 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class HomeFragment extends Fragment {
 
     private static final int SAMPLE_RATE    = 16_000;
     private static final int RECORD_SECONDS = 3;
     private static final int RECORD_SAMPLES = SAMPLE_RATE * RECORD_SECONDS;
+
+    // Voting window: 5 classifications over ~10 seconds
+    private static final int VOTING_ROUNDS  = 5;
 
     private static final int GREEN_THRESHOLD  = 60;
     private static final int ORANGE_THRESHOLD = 30;
@@ -42,8 +48,8 @@ public class HomeFragment extends Fragment {
     private LinearLayout top2Row;
     private Button       startListeningButton, stopListeningButton, recordButton;
 
-    private boolean serviceRunning  = false;
-    private boolean isRecording     = false;
+    private boolean serviceRunning = false;
+    private boolean isRecording    = false;
 
     private final BroadcastReceiver cryResultReceiver = new BroadcastReceiver() {
         @Override
@@ -87,9 +93,7 @@ public class HomeFragment extends Fragment {
 
         startListeningButton.setOnClickListener(v -> startDetectionService());
         stopListeningButton.setOnClickListener(v  -> stopDetectionService());
-
-        // Single button: tap → records 3s → auto classifies → shows result
-        recordButton.setOnClickListener(v -> recordAndClassify());
+        recordButton.setOnClickListener(v         -> recordAndClassify());
 
         updateListeningButtons();
     }
@@ -141,7 +145,7 @@ public class HomeFragment extends Fragment {
                         serviceRunning ? 0xFFEF4444 : 0xFFCBD5E1));
     }
 
-    // ─── Single-tap record + classify ────────────────────────────────────────
+    // ─── Manual record + voting window + FlashActivity ────────────────────────
 
     private void recordAndClassify() {
         if (isRecording) return;
@@ -158,60 +162,152 @@ public class HomeFragment extends Fragment {
         recordButton.setEnabled(false);
         recordButton.setBackgroundTintList(
                 android.content.res.ColorStateList.valueOf(0xFFB91C1C));
-        statusText.setText("Recording 3 s…");
+        statusText.setText("Listening…");
         recordHintText.setText("Hold near the baby…");
+        clearResults();
 
         new Thread(() -> {
-            // ── Step 1: Record ────────────────────────────────────────────────
-            int bufSize = Math.max(
-                    AudioRecord.getMinBufferSize(SAMPLE_RATE,
-                            AudioFormat.CHANNEL_IN_MONO,
-                            AudioFormat.ENCODING_PCM_16BIT),
-                    RECORD_SAMPLES * 2);
-
-            AudioRecord recorder = new AudioRecord(
-                    MediaRecorder.AudioSource.MIC, SAMPLE_RATE,
-                    AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufSize);
-
-            short[] clip = new short[RECORD_SAMPLES];
-            int pos = 0;
-            recorder.startRecording();
-            while (pos < RECORD_SAMPLES) {
-                int read = recorder.read(clip, pos, RECORD_SAMPLES - pos);
-                if (read > 0) pos += read;
-            }
-            recorder.stop();
-            recorder.release();
-
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> statusText.setText("Analysing…"));
-            }
-
-            // ── Step 2: Classify ──────────────────────────────────────────────
-            CryClassifier.PredictionResult result = null;
             try {
                 CryClassifier classifier = new CryClassifier(requireContext());
-                result = classifier.predict(clip);
-            } catch (Exception e) {
-                android.util.Log.e("HomeFragment", "Classification error", e);
-            }
 
-            final CryClassifier.PredictionResult finalResult = result;
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    isRecording = false;
-                    recordButton.setEnabled(true);
-                    recordButton.setBackgroundTintList(
-                            android.content.res.ColorStateList.valueOf(0xFFEF4444));
-                    recordHintText.setText("Tap to record & classify");
+                // Voting state
+                Map<String, Integer> votes    = new HashMap<>();
+                Map<String, Integer> totalPct = new HashMap<>();
 
-                    if (finalResult != null) {
-                        showResult(finalResult.top1Label, finalResult.top1Percent,
-                                finalResult.top2Label, finalResult.top2Percent);
-                    } else {
-                        statusText.setText("Could not classify. Try again.");
+                int bufSize = Math.max(
+                        AudioRecord.getMinBufferSize(SAMPLE_RATE,
+                                AudioFormat.CHANNEL_IN_MONO,
+                                AudioFormat.ENCODING_PCM_16BIT),
+                        RECORD_SAMPLES * 2);
+
+                AudioRecord recorder = new AudioRecord(
+                        MediaRecorder.AudioSource.MIC, SAMPLE_RATE,
+                        AudioFormat.CHANNEL_IN_MONO,
+                        AudioFormat.ENCODING_PCM_16BIT, bufSize);
+                recorder.startRecording();
+
+                for (int round = 1; round <= VOTING_ROUNDS; round++) {
+                    final int currentRound = round;
+
+                    // Update status
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() ->
+                                statusText.setText("Classifying… (" + currentRound + "/" + VOTING_ROUNDS + ")"));
                     }
-                });
+
+                    // Record 3 seconds
+                    short[] clip = new short[RECORD_SAMPLES];
+                    int pos = 0;
+                    while (pos < RECORD_SAMPLES) {
+                        int read = recorder.read(clip, pos, RECORD_SAMPLES - pos);
+                        if (read > 0) pos += read;
+                    }
+
+                    clip = CryDetectionService.rmsNormalize(clip);
+                    clip = CryDetectionService.preEmphasis(clip);
+                    // Classify
+                    // Skip silent clips — don't let them corrupt the vote
+                    double rms = 0;
+                    for (short s : clip) rms += (double) s * s;
+                    rms = Math.sqrt(rms / clip.length);
+                    if (rms < 200) {
+                        android.util.Log.d("HomeFragment", "Skipping silent clip, RMS=" + rms);
+                        continue;
+                    }
+
+// Classify
+                    CryClassifier.PredictionResult result = classifier.predict(clip);
+
+                    // Update votes
+                    votes.merge(result.top1Label, 1, Integer::sum);
+                    totalPct.merge(result.top1Label, result.top1Percent, Integer::sum);
+
+                    // Find current winner
+                    String winner = votes.entrySet().stream()
+                            .max(Map.Entry.comparingByValue())
+                            .map(Map.Entry::getKey)
+                            .orElse(result.top1Label);
+                    int avgPct = totalPct.get(winner) / votes.get(winner);
+
+                    // Show live update in result card
+                    final String liveLabel = winner;
+                    final int    livePct   = avgPct;
+                    final String top2Label = result.top2Label;
+                    final int    top2Pct   = result.top2Percent;
+
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() ->
+                                showResult(liveLabel, livePct, top2Label, top2Pct));
+                    }
+                }
+
+                recorder.stop();
+                recorder.release();
+
+                // Final winner
+                String finalWinner = votes.entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+                        .orElse("");
+                int finalPct = totalPct.get(finalWinner) / votes.get(finalWinner);
+
+                // Find second place
+                String secondLabel = "";
+                int secondPct = 0;
+                for (Map.Entry<String, Integer> e : votes.entrySet()) {
+                    if (!e.getKey().equals(finalWinner) && e.getValue() > votes.getOrDefault(secondLabel, 0)) {
+                        secondLabel = e.getKey();
+                        secondPct  = totalPct.get(secondLabel) / e.getValue();
+                    }
+                }
+
+                final String fWinner      = finalWinner;
+                final int    fPct         = finalPct;
+                final String fSecondLabel = secondLabel;
+                final int    fSecondPct   = secondPct;
+
+                // Save to DB and launch FlashActivity
+                CryRepository repo = new CryRepository(requireContext());
+                long recordId = repo.insertForId(
+                        new CryRecord(System.currentTimeMillis(),
+                                fWinner, fPct, fSecondLabel, fSecondPct)).get();
+
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        isRecording = false;
+                        recordButton.setEnabled(true);
+                        recordButton.setBackgroundTintList(
+                                android.content.res.ColorStateList.valueOf(0xFFEF4444));
+                        recordHintText.setText("Tap to record & classify");
+                        statusText.setText("Result ready");
+                        showResult(fWinner, fPct, fSecondLabel, fSecondPct);
+
+                        // Launch FlashActivity after 1 second
+                        recordButton.postDelayed(() -> {
+                            Intent flash = new Intent(requireContext(), FlashActivity.class);
+                            flash.putExtra(MainActivity.EXTRA_TOP1_LABEL,   fWinner);
+                            flash.putExtra(MainActivity.EXTRA_TOP1_PERCENT, fPct);
+                            flash.putExtra(MainActivity.EXTRA_TOP2_LABEL,   fSecondLabel);
+                            flash.putExtra(MainActivity.EXTRA_TOP2_PERCENT, fSecondPct);
+                            flash.putExtra(FlashActivity.EXTRA_RECORD_ID,   (int) recordId);
+                            flash.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(flash);
+                        }, 1_000);
+                    });
+                }
+
+            } catch (Exception e) {
+                android.util.Log.e("HomeFragment", "recordAndClassify error", e);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        isRecording = false;
+                        recordButton.setEnabled(true);
+                        recordButton.setBackgroundTintList(
+                                android.content.res.ColorStateList.valueOf(0xFFEF4444));
+                        recordHintText.setText("Tap to record & classify");
+                        statusText.setText("Could not classify. Try again.");
+                    });
+                }
             }
         }, "record-classify-thread").start();
     }

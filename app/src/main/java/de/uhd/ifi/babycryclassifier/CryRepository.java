@@ -20,7 +20,7 @@ public class CryRepository {
     private final CryDao dao;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    private CryRepository(Context context) {
+    public CryRepository(Context context) {
         dao = CryDatabase.getInstance(context).cryDao();
     }
 

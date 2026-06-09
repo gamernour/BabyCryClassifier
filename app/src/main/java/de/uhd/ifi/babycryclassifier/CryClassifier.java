@@ -40,12 +40,7 @@ public class CryClassifier {
     public PredictionResult predict(short[] audioClip) {
         float[][][][] input = AudioPreprocessor.preprocessAudioClip(audioClip);
         float[] probs = runInference(input);
-        PredictionResult result = buildResult(probs);
-        // ── DEBUG: save spectrogram image for comparison with Python ─────────────
-        // Remove this block once you've done the comparison
-        AudioPreprocessor.saveSpectrogramPng(context, result.top1Label);
-        // ─────────────────────────────────────────────────────────────────────────
-        return result;
+        return buildResult(probs);
     }
 
     private float[] runInference(float[][][][] input) {
@@ -77,9 +72,7 @@ public class CryClassifier {
 
     private MappedByteBuffer loadModelFile(Context context) throws Exception {
         AssetFileDescriptor fd =
-                //TEST!!!
                 context.getAssets().openFd("final_vgg16_mic_finetuned_quant.tflite");
-               // context.getAssets().openFd("final_vgg16_dynamic_quant.tflite");
         FileInputStream fis = new FileInputStream(fd.getFileDescriptor());
         FileChannel fc = fis.getChannel();
         MappedByteBuffer buf = fc.map(
@@ -94,11 +87,8 @@ public class CryClassifier {
     // ── Asset test ────────────────────────────────────────────────────────────
 
     public static void testAssets(Context context) {
-        String[] assets = {"test_1.wav"};
-        String[] names  = {"test_1"};
-        //String[] assets = {"1__11_.mp3", "2__33_.mp3", "3__4_.mp3", "4__5_.mp3", "5__8_.mp3", "test_1.wav", "test_105.wav"};
-        //String[] names  = {"eairh (belly pain)", "eh (need to burp)", "heh (discomfort)",
-         //       "neh (hunger)", "owh (tiredness)", "unknown baby 1", "test_105 (unknown)"};
+        String[] assets = {"belly_pain.wav", "need_to_burp.wav", "discomfort.wav", "hunger.wav", "tiredness.wav"};
+        String[] names  = {"eairh (belly pain)", "eh (need to burp)", "heh (discomfort)", "neh (hunger)", "owh (tiredness)"};
 
         new Thread(() -> {
             try {
@@ -129,28 +119,23 @@ public class CryClassifier {
         }).start();
     }
 
-    //Step1: Decode audio file MP3/WAV file → decoded to raw PCM using MediaCodec
     private static short[] decodeAssetToPcm(Context context, String assetName) throws Exception {
         AssetFileDescriptor afd = context.getAssets().openFd(assetName);
 
-        //set up MediaExtractor to read the file
         android.media.MediaExtractor extractor = new android.media.MediaExtractor();
         extractor.setDataSource(afd.getFileDescriptor(),
                 afd.getStartOffset(), afd.getDeclaredLength());
         extractor.selectTrack(0);
 
-        //get the audio format (MP3, AAC etc.)
         android.media.MediaFormat format = extractor.getTrackFormat(0);
         String mime = format.getString(android.media.MediaFormat.KEY_MIME);
         int nativeSr = format.getInteger(android.media.MediaFormat.KEY_SAMPLE_RATE);
         android.util.Log.d("AssetTest", assetName + " native SR: " + nativeSr);
 
-        //create the decoder for this format
         android.media.MediaCodec codec = android.media.MediaCodec.createDecoderByType(mime);
         codec.configure(format, null, null, 0);
         codec.start();
 
-        //feed compressed audio into decoder, read raw PCM out
         java.util.ArrayList<Short> pcmList = new java.util.ArrayList<>();
         android.media.MediaCodec.BufferInfo info = new android.media.MediaCodec.BufferInfo();
         boolean inputDone = false;
@@ -189,7 +174,6 @@ public class CryClassifier {
         extractor.release();
         afd.close();
 
-        // Check number of channels
         int channels = format.containsKey(android.media.MediaFormat.KEY_CHANNEL_COUNT)
                 ? format.getInteger(android.media.MediaFormat.KEY_CHANNEL_COUNT) : 1;
         android.util.Log.d("AssetTest", assetName + " channels: " + channels);
@@ -197,11 +181,10 @@ public class CryClassifier {
         short[] pcmNative = new short[pcmList.size()];
         for (int i = 0; i < pcmNative.length; i++) pcmNative[i] = pcmList.get(i);
 
-        //Step2: Convert stereo to mono by taking left channel only
         if (channels == 2) {
             short[] mono = new short[pcmNative.length / 2];
             for (int i = 0; i < mono.length; i++) {
-                mono[i] = pcmNative[i * 2]; // take left channel
+                mono[i] = pcmNative[i * 2];
             }
             pcmNative = mono;
             android.util.Log.d("AssetTest", "Stereo→mono: " + (mono.length * 2) + " → " + mono.length);
@@ -213,7 +196,6 @@ public class CryClassifier {
         return pcmNative;
     }
 
-    //Step 3:  Resample to 16kHz using linear interpolation
     private static short[] resampleTo16k(short[] input, int nativeSr) {
         double ratio = (double) nativeSr / 16000.0;
         int outLen = (int)(input.length / ratio);

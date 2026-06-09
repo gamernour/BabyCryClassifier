@@ -23,15 +23,10 @@ import java.util.Map;
 
 /**
  * CryDetectionService — continuously listens to the microphone.
- *
  * Detection strategy:
- *   1. Energy gate  — fast pre-filter, skips silent frames
- *   2. ML gate      — binary CryDetector TFLite model
- *   3. Voting window — once cry confirmed, classifies every ~2 seconds
- *                      for 10 seconds, votes on the most frequent result,
- *                      updates UI live after each classification
- *
- *
+ *   1. ML gate      — binary CryDetector TFLite model (3 consecutive passes required)
+ *   2. Voting window — once cry confirmed, classifies every 2 seconds
+ *                      for 10 seconds, votes on the most frequent result
  */
 public class CryDetectionService extends Service {
 
@@ -41,7 +36,7 @@ public class CryDetectionService extends Service {
     private static final int    CLIP_SECONDS         = 3;
     private static final int RECORD_SAMPLE_RATE = 48_000;  // what hardware actually uses
     private static final int MODEL_SAMPLE_RATE  = 16_000;  // what model expects
-    private static final int CLIP_SAMPLES       = MODEL_SAMPLE_RATE * CLIP_SECONDS; // 48000 — unchanged
+    private static final int CLIP_SAMPLES       = MODEL_SAMPLE_RATE * CLIP_SECONDS; // 16000 * 3 = 48000 samples at 16kH
     //private static final double ENERGY_THRESHOLD     = 500;
     //private static final int    REQUIRED_LOUD_CHUNKS = 2;
     private static final int    ML_CHECK_INTERVAL    = 1;
@@ -183,8 +178,6 @@ public class CryDetectionService extends Service {
 
                 if (loudChunkCounter < REQUIRED_LOUD_CHUNKS) continue;
                 */
-                mlCheckCounter++;
-                if (mlCheckCounter % ML_CHECK_INTERVAL != 0) continue;
 
                 // Gate 2: ML binary model
                 if (mlCheckCounter % ML_CHECK_INTERVAL != 0) continue;
@@ -208,7 +201,7 @@ public class CryDetectionService extends Service {
                     mlPassCounter++;
                     if (mlPassCounter < REQUIRED_ML_PASSES) continue;
                     mlPassCounter = 0;
-// Both gates passed consistently → classify
+                    // Both gates passed consistently → classify
                     android.util.Log.d("CryDetection", "ML PASSED — starting voting window");
                 }
 
@@ -249,7 +242,7 @@ public class CryDetectionService extends Service {
      * RMS normalization — scales the clip so its RMS energy matches TARGET_RMS.
      * This compensates for the mic being quieter or louder than the training data.
      */
-    private static short[] rmsNormalize(short[] clip) {
+    public static short[] rmsNormalize(short[] clip) {
         double rms = computeRMS(clip, clip.length);
         if (rms < 1.0) return clip;  // silence — don't amplify noise
 
@@ -271,7 +264,7 @@ public class CryDetectionService extends Service {
      * y[n] = x[n] - PRE_EMPHASIS * x[n-1]
      * Standard in speech/audio processing to compensate for mic roll-off.
      */
-    private static short[] preEmphasis(short[] clip) {
+    public static short[] preEmphasis(short[] clip) {
         short[] out = new short[clip.length];
         out[0] = clip[0];
         for (int i = 1; i < clip.length; i++) {
