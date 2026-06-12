@@ -51,6 +51,11 @@ public class CryRepository {
     public void updateFeedback(int id, String feedback) {
         executor.execute(() -> dao.updateFeedback(id, feedback));
     }
+
+    /** Called after the WAV file is written to disk. */
+    public void updateAudioPath(int id, String path) {
+        executor.execute(() -> dao.updateAudioPath(id, path));
+    }
     public LiveData<List<CryRecord>> getRecentCries() {
         return dao.getRecentCries();
     }

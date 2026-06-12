@@ -59,6 +59,8 @@
         <activity
             android:name=".FeedbackActivity"
             android:exported="false"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
     </application>

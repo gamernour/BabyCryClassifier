@@ -44,11 +44,11 @@ public class CryDetectionService extends Service {
     private static final int    VOTING_WINDOW_MS     = 10_000;
     private static final int    VOTING_INTERVAL_MS   = 2_000;
 
-    // ── Normalization constants ───────────────────────────────────────────────
-    // Target RMS level — matches approximate RMS of Dunstan training clips.
+    // ── Normalization constants
+    // Target RMS level:  matches approximate RMS of Dunstan training clips.
     // If mic clips are too quiet/loud this brings them to the same level.
     private static final double TARGET_RMS           = 1500.0;
-    // Pre-emphasis coefficient — boosts high frequencies suppressed by mic.
+    // Pre-emphasis coefficient:  boosts high frequencies suppressed by mic.
     // Standard value used in speech/audio processing (0.95–0.97).
     private static final float  PRE_EMPHASIS         = 0.97f;
 
@@ -236,7 +236,7 @@ public class CryDetectionService extends Service {
         }
         return out;
     }
-    // ── Normalization ─────────────────────────────────────────────────────────
+    // ── Normalization
 
     /**
      * RMS normalization — scales the clip so its RMS energy matches TARGET_RMS.
@@ -275,7 +275,7 @@ public class CryDetectionService extends Service {
         return out;
     }
 
-    // ── Ring buffer ───────────────────────────────────────────────────────────
+    // ── Ring buffer
 
     private void writeToRingBuffer(short[] src, int len) {
         int ringSize = CLIP_SAMPLES * 3;
@@ -366,26 +366,27 @@ public class CryDetectionService extends Service {
         android.util.Log.d("CryDetection",
                 "Voting done: " + winner + " (" + confidence + "%) from " + totalVotes + " votes");
 
-        // ── Save to database and get the row id back ──────────────────────────
+        // ── Save to database and get the row id back
         int recordId = -1;
         try {
             java.util.concurrent.Future<Long> future =
                     CryRepository.getInstance(getApplicationContext())
-                            .insertForId(new CryRecord(detectedAt, winner, confidence, second, secondPct));
+                            .insertForId(new CryRecord(detectedAt, winner, confidence, second, secondPct,
+                                    getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE)
+                                            .getString(MainActivity.KEY_PARTICIPANT_ID, "unknown")));
             recordId = future.get().intValue();   // blocks briefly — we're already on a bg thread
         } catch (Exception e) {
             android.util.Log.e("CryDetection", "DB insert failed", e);
         }
 
-        // ── Launch FlashActivity (full-screen result for 5 seconds) ──────────
-        Intent flashIntent = new Intent(this, FlashActivity.class);
-        flashIntent.putExtra(MainActivity.EXTRA_TOP1_LABEL,   winner);
-        flashIntent.putExtra(MainActivity.EXTRA_TOP1_PERCENT, confidence);
-        flashIntent.putExtra(MainActivity.EXTRA_TOP2_LABEL,   second);
-        flashIntent.putExtra(MainActivity.EXTRA_TOP2_PERCENT, secondPct);
-        flashIntent.putExtra(FlashActivity.EXTRA_RECORD_ID,   recordId);
-        flashIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(flashIntent);
+        // ── Broadcast result to HomeFragment for in-screen overlay
+        Intent resultIntent = new Intent(MainActivity.ACTION_CRY_RESULT);
+        resultIntent.putExtra(MainActivity.EXTRA_TOP1_LABEL,   winner);
+        resultIntent.putExtra(MainActivity.EXTRA_TOP1_PERCENT, confidence);
+        resultIntent.putExtra(MainActivity.EXTRA_TOP2_LABEL,   second);
+        resultIntent.putExtra(MainActivity.EXTRA_TOP2_PERCENT, secondPct);
+        resultIntent.putExtra(FlashActivity.EXTRA_RECORD_ID,   recordId);
+        sendBroadcast(resultIntent);
 
         updateNotification("Baby is crying: " + winner + " (" + confidence + "%)");
 

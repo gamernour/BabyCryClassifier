@@ -1,285 +1,408 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0F4F8"
-    android:fillViewport="true">
+    android:fitsSystemWindows="false">
 
-    <LinearLayout
+    <!-- ── Normal home content ─────────────────────────────────────────── -->
+    <ScrollView
+        android:id="@+id/homeScrollView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="28dp"
-        android:paddingBottom="32dp">
+        android:layout_height="match_parent"
+        android:background="#F0F4F8"
+        android:fillViewport="true">
 
-        <!-- Header -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="👶"
-            android:textSize="36sp"
-            android:gravity="center"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Baby Cry Classifier"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#1E3A5F"
-            android:gravity="center"
-            android:layout_marginBottom="6dp" />
-
-        <!-- Status pill -->
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ready"
-            android:textSize="13sp"
-            android:textColor="#64748B"
-            android:background="@drawable/bg_status_pill"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="28dp" />
-
-        <!-- AUTO DETECTION CARD -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="3dp"
-            app:cardBackgroundColor="#FFFFFF">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Auto Listen"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:textColor="#94A3B8"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="14dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="2">
-
-                    <Button
-                        android:id="@+id/startListeningButton"
-                        android:layout_width="0dp"
-                        android:layout_height="52dp"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
-                        android:text="Start"
-                        android:textSize="15sp"
-                        android:textColor="#FFFFFF"
-                        android:backgroundTint="#0D9488"
-                        style="@style/Widget.MaterialComponents.Button" />
-
-                    <Button
-                        android:id="@+id/stopListeningButton"
-                        android:layout_width="0dp"
-                        android:layout_height="52dp"
-                        android:layout_weight="1"
-                        android:layout_marginStart="6dp"
-                        android:text="Stop"
-                        android:textSize="15sp"
-                        android:backgroundTint="#CBD5E1"
-                        android:textColor="#FFFFFF"
-                        android:enabled="false"
-                        style="@style/Widget.MaterialComponents.Button" />
-
-                </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- MANUAL TEST — centered round button, no card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:layout_marginBottom="16dp">
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="28dp"
+            android:paddingBottom="32dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/recordButton"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:layout_marginBottom="10dp"
-                android:backgroundTint="#EF4444"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:text=""
-                app:cornerRadius="50dp"
-                app:icon="@android:drawable/ic_btn_speak_now"
-                app:iconTint="#FFFFFF"
-                app:iconSize="36dp"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                style="@style/Widget.MaterialComponents.Button" />
+            <!-- Header -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="👶"
+                android:textSize="36sp"
+                android:gravity="center"
+                android:layout_marginBottom="4dp" />
 
             <TextView
-                android:id="@+id/recordHintText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Baby Cry Classifier"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#1E3A5F"
+                android:gravity="center"
+                android:layout_marginBottom="6dp" />
+
+            <!-- Participant ID badge -->
+            <LinearLayout
+                android:id="@+id/participantBadge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_participant_badge"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:id="@+id/participantLabel"
+                    android:text="Session: —"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#0C447C" />
+
+                <TextView
+                    android:id="@+id/changeParticipantBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="change"
+                    android:textSize="12sp"
+                    android:textColor="#185FA5"
+                    android:paddingStart="8dp" />
+
+            </LinearLayout>
+
+            <!-- Status pill -->
+            <TextView
+                android:id="@+id/statusText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Tap to record &amp; classify"
+                android:text="Ready"
                 android:textSize="13sp"
-                android:textColor="#94A3B8"
-                android:layout_gravity="center" />
+                android:textColor="#64748B"
+                android:background="@drawable/bg_status_pill"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="28dp" />
 
-        </LinearLayout>
+            <!-- AUTO DETECTION CARD -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
 
-        <!-- RESULT CARD -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/resultCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="3dp"
-            app:cardBackgroundColor="#FFFFFF">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Auto Listen"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#94A3B8"
+                        android:letterSpacing="0.05"
+                        android:layout_marginBottom="14dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
+
+                        <Button
+                            android:id="@+id/startListeningButton"
+                            android:layout_width="0dp"
+                            android:layout_height="52dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:text="Start"
+                            android:textSize="15sp"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#0D9488"
+                            style="@style/Widget.MaterialComponents.Button" />
+
+                        <Button
+                            android:id="@+id/stopListeningButton"
+                            android:layout_width="0dp"
+                            android:layout_height="52dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="6dp"
+                            android:text="Stop"
+                            android:textSize="15sp"
+                            android:backgroundTint="#CBD5E1"
+                            android:textColor="#FFFFFF"
+                            android:enabled="false"
+                            style="@style/Widget.MaterialComponents.Button" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- MANUAL TEST — centered round button -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:gravity="center"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/recordButton"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="10dp"
+                    android:backgroundTint="#EF4444"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text=""
+                    app:cornerRadius="50dp"
+                    app:icon="@android:drawable/ic_btn_speak_now"
+                    app:iconTint="#FFFFFF"
+                    app:iconSize="36dp"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    style="@style/Widget.MaterialComponents.Button" />
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:id="@+id/recordHintText"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Result"
+                    android:text="Tap to record &amp; classify"
                     android:textSize="13sp"
-                    android:textStyle="bold"
                     android:textColor="#94A3B8"
-                    android:letterSpacing="0.05"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_gravity="center" />
+
+            </LinearLayout>
+
+            <!-- RESULT CARD -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/resultCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="#FFFFFF">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="4dp">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                    <View
-                        android:id="@+id/top1Dot"
-                        android:layout_width="14dp"
-                        android:layout_height="14dp"
-                        android:background="@drawable/bg_dot"
-                        android:layout_marginEnd="12dp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Result"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#94A3B8"
+                        android:letterSpacing="0.05"
+                        android:layout_marginBottom="16dp" />
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="4dp">
 
-                        <TextView
-                            android:id="@+id/topOneResult"
-                            android:layout_width="match_parent"
+                        <View
+                            android:id="@+id/top1Dot"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:background="@drawable/bg_dot"
+                            android:layout_marginEnd="12dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="—"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="#1E3A5F" />
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/topOneResult"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:textColor="#1E3A5F" />
+
+                            <TextView
+                                android:id="@+id/top1ConfidenceLabel"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text=""
+                                android:textSize="13sp"
+                                android:textColor="#94A3B8" />
+
+                        </LinearLayout>
 
                         <TextView
-                            android:id="@+id/top1ConfidenceLabel"
-                            android:layout_width="match_parent"
+                            android:id="@+id/top1PercentBadge"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=""
-                            android:textSize="13sp"
-                            android:textColor="#94A3B8" />
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#1E3A5F"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:paddingTop="6dp"
+                            android:paddingBottom="6dp"
+                            android:background="@drawable/bg_percent_badge" />
 
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/top1PercentBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=""
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#1E3A5F"
-                        android:paddingStart="12dp"
-                        android:paddingEnd="12dp"
-                        android:paddingTop="6dp"
-                        android:paddingBottom="6dp"
-                        android:background="@drawable/bg_percent_badge" />
-
-                </LinearLayout>
-
-                <View
-                    android:id="@+id/resultDivider"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#F1F5F9"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginBottom="12dp"
-                    android:visibility="gone" />
-
-                <LinearLayout
-                    android:id="@+id/top2Row"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:visibility="gone">
-
                     <View
-                        android:id="@+id/top2Dot"
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:background="@drawable/bg_dot"
-                        android:layout_marginEnd="12dp" />
+                        android:id="@+id/resultDivider"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#F1F5F9"
+                        android:layout_marginTop="12dp"
+                        android:layout_marginBottom="12dp"
+                        android:visibility="gone" />
 
-                    <TextView
-                        android:id="@+id/topTwoResult"
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:id="@+id/top2Row"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text=""
-                        android:textSize="15sp"
-                        android:textColor="#475569" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:visibility="gone">
 
-                    <TextView
-                        android:id="@+id/top2PercentBadge"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text=""
-                        android:textSize="13sp"
-                        android:textColor="#64748B"
-                        android:paddingStart="10dp"
-                        android:paddingEnd="10dp"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="4dp"
-                        android:background="@drawable/bg_percent_badge_grey" />
+                        <View
+                            android:id="@+id/top2Dot"
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:background="@drawable/bg_dot"
+                            android:layout_marginEnd="12dp" />
 
+                        <TextView
+                            android:id="@+id/topTwoResult"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text=""
+                            android:textSize="15sp"
+                            android:textColor="#475569" />
+
+                        <TextView
+                            android:id="@+id/top2PercentBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:textSize="13sp"
+                            android:textColor="#64748B"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:paddingTop="4dp"
+                            android:paddingBottom="4dp"
+                            android:background="@drawable/bg_percent_badge_grey" />
+
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
+            </androidx.cardview.widget.CardView>
 
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- ── Full-screen flash overlay ──────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/flashOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:fitsSystemWindows="false"
+        android:visibility="gone">
+
+        <!-- Top section = top1 class -->
+        <LinearLayout
+            android:id="@+id/overlayTop"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/overlayTopEmoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="80sp"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:id="@+id/overlayTopLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/overlayTopPercent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginTop="6dp" />
+
+        </LinearLayout>
+
+        <!-- No divider — removed -->
+
+        <!-- Bottom section = top2 class -->
+        <LinearLayout
+            android:id="@+id/overlayBottom"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/overlayBottomEmoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="56sp"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:id="@+id/overlayBottomLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/overlayBottomPercent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
 
     </LinearLayout>
-</ScrollView>
+
+</FrameLayout>

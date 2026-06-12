@@ -1,7 +1,8 @@
 package de.uhd.ifi.babycryclassifier;
 
+//disabled for now
 /**
- * AudioPreprocessor — matches the Python training pipeline exactly:
+ * AudioPreprocessor — matches the Python training pipeline:
  *
  *   1. Pad or center-crop mono PCM at 16 kHz to exactly 3 s (48 000 samples)
  *   3. Compute power Mel-spectrogram:
@@ -81,7 +82,7 @@ public class AudioPreprocessor {
         return max;
     }
 
-    // Matches Python: mel.astype(np.uint8) — truncates to integer values
+    // Matches Python: mel.astype(np.uint8)
     private static double[][] quantiseToUint8(double[][] input) {
         int rows = input.length;
         int cols = input[0].length;

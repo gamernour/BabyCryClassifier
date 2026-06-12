@@ -28,4 +28,8 @@ public interface CryDao {
     /** Called when the parent answers the 5-minute feedback prompt. */
     @Query("UPDATE cry_history SET userFeedback = :feedback WHERE id = :id")
     void updateFeedback(int id, String feedback);
+
+    /** Called after the audio file is saved to disk. */
+    @Query("UPDATE cry_history SET audioPath = :path WHERE id = :id")
+    void updateAudioPath(int id, String path);
 }

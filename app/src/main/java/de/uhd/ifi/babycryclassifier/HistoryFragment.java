@@ -56,7 +56,6 @@ public class HistoryFragment extends Fragment {
                 CryRepository.getInstance(requireContext()).deleteAll());
     }
 
-    // ── Adapter ───────────────────────────────────────────────────────────────
 
     static class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 

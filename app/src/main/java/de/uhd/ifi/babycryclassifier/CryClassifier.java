@@ -84,7 +84,7 @@ public class CryClassifier {
         return buf;
     }
 
-    // ── Asset test ────────────────────────────────────────────────────────────
+    // ── Asset test
 
     public static void testAssets(Context context) {
         String[] assets = {"belly_pain.wav", "need_to_burp.wav", "discomfort.wav", "hunger.wav", "tiredness.wav"};
@@ -212,7 +212,7 @@ public class CryClassifier {
         return out;
     }
 
-    // ── Result ────────────────────────────────────────────────────────────────
+    // ── Result
 
     public static class PredictionResult {
         public final String top1Label;

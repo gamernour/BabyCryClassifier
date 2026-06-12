@@ -6,17 +6,19 @@
     android:orientation="vertical"
     android:gravity="center"
     android:padding="32dp"
-    android:background="?attr/colorSurface">
+    android:background="#F7F8FA">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="5 min ago"
+        android:text="1 min ago"
         android:textSize="12sp"
-        android:textColor="?attr/colorOnSurfaceVariant"
-        android:background="@drawable/badge_background"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="4dp"
+        android:textColor="#64748B"
+        android:background="#E2E8F0"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         android:layout_marginBottom="20dp" />
 
     <TextView
@@ -24,9 +26,9 @@
         android:layout_height="wrap_content"
         android:text="Was the classification correct?"
         android:textSize="22sp"
-        android:fontFamily="sans-serif-medium"
+        android:textStyle="bold"
         android:textAlignment="center"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="#1E3A5F"
         android:layout_marginBottom="8dp" />
 
     <TextView
@@ -35,43 +37,40 @@
         android:layout_height="wrap_content"
         android:textSize="15sp"
         android:textAlignment="center"
-        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textColor="#64748B"
         android:layout_marginBottom="36dp"
-        android:text="I detected: Needs to burp" />
+        android:text="I detected: Hunger" />
 
-    <!-- Yes -->
     <Button
         android:id="@+id/btnYes"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="✓  Yes, that was correct"
+        android:text="Yes, that was correct"
         android:textSize="15sp"
         android:layout_marginBottom="12dp"
         android:backgroundTint="#EAF3DE"
         android:textColor="#27500A"
         style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
 
-    <!-- No -->
     <Button
         android:id="@+id/btnNo"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="✗  No, it was wrong"
+        android:text="No, it was wrong"
         android:textSize="15sp"
         android:layout_marginBottom="12dp"
         android:backgroundTint="#FCEBEB"
         android:textColor="#791F1F"
         style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
 
-    <!-- Not sure -->
     <Button
         android:id="@+id/btnUnsure"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:text="Not sure"
         android:textSize="15sp"
-        android:backgroundTint="?attr/colorSurfaceVariant"
-        android:textColor="?attr/colorOnSurfaceVariant"
+        android:backgroundTint="#E2E8F0"
+        android:textColor="#475569"
         style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
 
 </LinearLayout>
