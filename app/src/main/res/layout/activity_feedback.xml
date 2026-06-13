@@ -15,7 +15,6 @@
         android:paddingBottom="28dp"
         android:gravity="center_horizontal">
 
-        <!-- Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -65,75 +64,33 @@
                 android:textColor="#64748B"
                 android:layout_marginBottom="14dp" />
 
-            <Button
-                android:id="@+id/btnHunger"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="@string/btn_hunger"
-                android:textSize="14sp"
-                android:layout_marginBottom="10dp"
-                android:backgroundTint="#F09595"
-                android:textColor="#501313"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            <Button android:id="@+id/btnHunger" android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="@string/btn_hunger" android:textSize="13sp" android:layout_marginBottom="10dp"
+                android:backgroundTint="#F09595" android:textColor="#501313" />
 
-            <Button
-                android:id="@+id/btnBurp"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="@string/btn_burp"
-                android:textSize="14sp"
-                android:layout_marginBottom="10dp"
-                android:backgroundTint="#FFB347"
-                android:textColor="#412402"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            <Button android:id="@+id/btnBurp" android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="@string/btn_burp" android:textSize="13sp" android:layout_marginBottom="10dp"
+                android:backgroundTint="#FFB347" android:textColor="#412402" />
 
-            <Button
-                android:id="@+id/btnDiscomfort"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="@string/btn_discomfort"
-                android:textSize="14sp"
-                android:layout_marginBottom="10dp"
-                android:backgroundTint="#5DCAA5"
-                android:textColor="#04342C"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            <Button android:id="@+id/btnDiscomfort" android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="@string/btn_discomfort" android:textSize="13sp" android:layout_marginBottom="10dp"
+                android:backgroundTint="#5DCAA5" android:textColor="#04342C" />
 
-            <Button
-                android:id="@+id/btnBellyPain"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="@string/btn_belly_pain"
-                android:textSize="14sp"
-                android:layout_marginBottom="10dp"
-                android:backgroundTint="#C0DD97"
-                android:textColor="#173404"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            <Button android:id="@+id/btnBellyPain" android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="@string/btn_belly_pain" android:textSize="13sp" android:layout_marginBottom="10dp"
+                android:backgroundTint="#C0DD97" android:textColor="#173404" />
 
-            <Button
-                android:id="@+id/btnTiredness"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="@string/btn_tiredness"
-                android:textSize="14sp"
-                android:layout_marginBottom="10dp"
-                android:backgroundTint="#85B7EB"
-                android:textColor="#042C53"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            <Button android:id="@+id/btnTiredness" android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="@string/btn_tiredness" android:textSize="13sp" android:layout_marginBottom="10dp"
+                android:backgroundTint="#85B7EB" android:textColor="#042C53" />
 
-            <Button
-                android:id="@+id/btnNotSure"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="@string/btn_not_sure"
-                android:textSize="14sp"
-                android:layout_marginBottom="0dp"
-                android:backgroundTint="#E2E8F0"
-                android:textColor="#475569"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            <Button android:id="@+id/btnNotSure" android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="@string/btn_not_sure" android:textSize="13sp"
+                android:backgroundTint="#E2E8F0" android:textColor="#475569" />
 
         </LinearLayout>
 
-        <!-- STEP 2: Confidence selection -->
+        <!-- STEP 2: Confidence -->
         <LinearLayout
             android:id="@+id/step2Layout"
             android:layout_width="match_parent"
@@ -150,37 +107,111 @@
                 android:textColor="#1E3A5F"
                 android:layout_marginBottom="20dp" />
 
-            <Button
-                android:id="@+id/btnConfHigh"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="@string/btn_conf_high"
-                android:textSize="15sp"
-                android:layout_marginBottom="12dp"
-                android:backgroundTint="#EAF3DE"
-                android:textColor="#27500A"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            <Button android:id="@+id/btnConfHigh" android:layout_width="match_parent" android:layout_height="56dp"
+                android:text="@string/btn_conf_high" android:textSize="15sp" android:layout_marginBottom="12dp"
+                android:backgroundTint="#EAF3DE" android:textColor="#27500A" />
 
-            <Button
-                android:id="@+id/btnConfMedium"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="@string/btn_conf_medium"
-                android:textSize="15sp"
-                android:layout_marginBottom="12dp"
-                android:backgroundTint="#FFF3CD"
-                android:textColor="#856404"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+            <Button android:id="@+id/btnConfMedium" android:layout_width="match_parent" android:layout_height="56dp"
+                android:text="@string/btn_conf_medium" android:textSize="15sp" android:layout_marginBottom="12dp"
+                android:backgroundTint="#FFF3CD" android:textColor="#856404" />
 
-            <Button
-                android:id="@+id/btnConfLow"
+            <Button android:id="@+id/btnConfLow" android:layout_width="match_parent" android:layout_height="56dp"
+                android:text="@string/btn_conf_low" android:textSize="15sp"
+                android:backgroundTint="#FCEBEB" android:textColor="#791F1F" />
+
+        </LinearLayout>
+
+        <!-- STEP 3: What stopped crying + noise level -->
+        <LinearLayout
+            android:id="@+id/step3Layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="@string/btn_conf_low"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_step3_question"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#1E3A5F"
+                android:layout_marginBottom="12dp" />
+
+            <CheckBox android:id="@+id/cbFeeding"  android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/stop_feeding"  android:textSize="14sp" android:layout_marginBottom="4dp" />
+            <CheckBox android:id="@+id/cbBurping"  android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/stop_burping"  android:textSize="14sp" android:layout_marginBottom="4dp" />
+            <CheckBox android:id="@+id/cbDiaper"   android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/stop_diaper"   android:textSize="14sp" android:layout_marginBottom="4dp" />
+            <CheckBox android:id="@+id/cbHolding"  android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/stop_holding"  android:textSize="14sp" android:layout_marginBottom="4dp" />
+            <CheckBox android:id="@+id/cbSleep"    android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/stop_sleep"    android:textSize="14sp" android:layout_marginBottom="4dp" />
+            <CheckBox android:id="@+id/cbSelf"     android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/stop_self"     android:textSize="14sp" android:layout_marginBottom="4dp" />
+            <CheckBox android:id="@+id/cbOther"    android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/stop_other"    android:textSize="14sp" android:layout_marginBottom="20dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_noise_question"
                 android:textSize="15sp"
-                android:backgroundTint="#FCEBEB"
-                android:textColor="#791F1F"
-                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+                android:textStyle="bold"
+                android:textColor="#1E3A5F"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="24dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/noise_quiet" android:textSize="12sp" android:textColor="#64748B" android:layout_marginEnd="8dp" />
+                <SeekBar android:id="@+id/noiseSeekBar" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:max="4" android:progress="2" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/noise_loud" android:textSize="12sp" android:textColor="#64748B" android:layout_marginStart="8dp" />
+                <TextView android:id="@+id/noiseValue" android:layout_width="32dp" android:layout_height="wrap_content" android:text="3" android:textSize="16sp" android:textStyle="bold" android:textColor="#1E3A5F" android:gravity="center" android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <Button android:id="@+id/btnStep3Next" android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="@string/btn_next"
+                android:backgroundTint="#185FA5" android:textColor="#FFFFFF" android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <!-- STEP 4: Notes (optional) -->
+        <LinearLayout
+            android:id="@+id/step4Layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_notes_question"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#1E3A5F"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_notes_hint"
+                android:textSize="12sp"
+                android:textColor="#64748B"
+                android:layout_marginBottom="12dp" />
+
+            <EditText
+                android:id="@+id/notesField"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:background="#FFFFFF"
+                android:padding="12dp"
+                android:textSize="14sp"
+                android:layout_marginBottom="16dp" />
+
+            <Button android:id="@+id/btnSubmit" android:layout_width="match_parent" android:layout_height="52dp"
+                android:text="@string/btn_submit"
+                android:backgroundTint="#185FA5" android:textColor="#FFFFFF" android:textSize="15sp"
+                android:layout_marginBottom="10dp" />
+
+            <Button android:id="@+id/btnSkipNotes" android:layout_width="match_parent" android:layout_height="44dp"
+                android:text="@string/btn_skip_notes"
+                android:backgroundTint="#E2E8F0" android:textColor="#475569" android:textSize="13sp" />
 
         </LinearLayout>
 

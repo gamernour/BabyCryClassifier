@@ -38,6 +38,15 @@ public class CryRecord {
     // Parent's confidence in their label
     public String labelConfidence; // null | "high" | "medium" | "low"
 
+    // Session-level baby info (from SharedPreferences)
+    public String babyAgeMonths;   // e.g. "3"
+    public String familyLanguage;  // e.g. "German"
+
+    // Per-cry context (from feedback steps 3-5)
+    public String whatStoppedCry;  // comma-separated: "feeding,burping" etc.
+    public int    noiseLevel;      // 1-5, 0 = not set
+    public String notes;           // free text, optional
+
     public CryRecord(long timestamp,
                      String top1Label, int top1Percent,
                      String top2Label, int top2Percent,
@@ -54,5 +63,10 @@ public class CryRecord {
         this.babyId         = babyId;
         this.userLabel      = null;
         this.labelConfidence = null;
+        this.babyAgeMonths  = null;
+        this.familyLanguage = null;
+        this.whatStoppedCry = null;
+        this.noiseLevel     = 0;
+        this.notes          = null;
     }
 }

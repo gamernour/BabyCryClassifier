@@ -369,14 +369,21 @@ public class CryDetectionService extends Service {
         // ── Save to database and get the row id back
         int recordId = -1;
         try {
+            android.content.SharedPreferences prefs =
+                    getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE);
             java.util.concurrent.Future<Long> future =
                     CryRepository.getInstance(getApplicationContext())
                             .insertForId(new CryRecord(detectedAt, winner, confidence, second, secondPct,
-                                    getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE)
-                                            .getString(MainActivity.KEY_PARTICIPANT_ID, "unknown"),
-                                    getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE)
-                                            .getString(MainActivity.KEY_BABY_ID, "unknown")));
-            recordId = future.get().intValue();   // blocks briefly — we're already on a bg thread
+                                    prefs.getString(MainActivity.KEY_PARTICIPANT_ID, "unknown"),
+                                    prefs.getString(MainActivity.KEY_BABY_ID, "unknown")));
+            recordId = future.get().intValue();
+            // Stamp session-level baby info
+            String babyAge  = prefs.getString(MainActivity.KEY_BABY_AGE, null);
+            String famLang  = prefs.getString(MainActivity.KEY_FAMILY_LANGUAGE, null);
+            if (babyAge != null || famLang != null) {
+                CryRepository.getInstance(getApplicationContext())
+                        .updateBabyInfo(recordId, babyAge, famLang);
+            }
         } catch (Exception e) {
             android.util.Log.e("CryDetection", "DB insert failed", e);
         }

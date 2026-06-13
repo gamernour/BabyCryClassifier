@@ -44,4 +44,12 @@ public interface CryDao {
     /** Fetch a single record by id — used to get audioPath before deleting. */
     @Query("SELECT * FROM cry_history WHERE id = :id LIMIT 1")
     CryRecord getById(int id);
+
+    /** Updates per-cry context from feedback steps 3-5. */
+    @Query("UPDATE cry_history SET whatStoppedCry = :whatStopped, noiseLevel = :noise, notes = :notes WHERE id = :id")
+    void updateContextInfo(int id, String whatStopped, int noise, String notes);
+
+    /** Updates session-level baby info on a record. */
+    @Query("UPDATE cry_history SET babyAgeMonths = :age, familyLanguage = :language WHERE id = :id")
+    void updateBabyInfo(int id, String age, String language);
 }

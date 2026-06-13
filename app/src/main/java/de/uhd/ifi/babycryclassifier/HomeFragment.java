@@ -288,12 +288,18 @@ public class HomeFragment extends Fragment {
                                 SharedPreferences prefs = requireContext()
                                         .getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
                                 String participantId = prefs.getString(MainActivity.KEY_PARTICIPANT_ID, "unknown");
-                                String babyId = prefs.getString(MainActivity.KEY_BABY_ID, "unknown");
+                                String babyId        = prefs.getString(MainActivity.KEY_BABY_ID, "unknown");
+                                String babyAge       = prefs.getString(MainActivity.KEY_BABY_AGE, null);
+                                String familyLang    = prefs.getString(MainActivity.KEY_FAMILY_LANGUAGE, null);
                                 long recordId = repo.insertForId(
                                         new CryRecord(timestamp,
                                                 finalResult.top1Label, finalResult.top1Percent,
                                                 finalResult.top2Label, finalResult.top2Percent,
                                                 participantId, babyId)).get();
+                                // Stamp session-level baby info
+                                if (babyAge != null || familyLang != null) {
+                                    repo.updateBabyInfo((int) recordId, babyAge, familyLang);
+                                }
 
                                 // Save WAV file and store path in DB
                                 String audioPath = saveAudioToFile(processedClip, timestamp);

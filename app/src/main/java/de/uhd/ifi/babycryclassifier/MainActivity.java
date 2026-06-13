@@ -27,9 +27,11 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_TOP2_LABEL   = "top2_label";
     public static final String EXTRA_TOP2_PERCENT = "top2_percent";
 
-    public static final String PREFS_NAME        = "BabyCryPrefs";
-    public static final String KEY_PARTICIPANT_ID = "participant_id";
-    public static final String KEY_BABY_ID        = "baby_id";
+    public static final String PREFS_NAME         = "BabyCryPrefs";
+    public static final String KEY_PARTICIPANT_ID  = "participant_id";
+    public static final String KEY_BABY_ID         = "baby_id";
+    public static final String KEY_BABY_AGE        = "baby_age_months";
+    public static final String KEY_FAMILY_LANGUAGE = "family_language";
 
     private static final int PERMISSION_REQUEST_CODE = 100;
 
@@ -123,16 +125,53 @@ public class MainActivity extends AppCompatActivity {
         inner.addView(lblBaby);
         inner.addView(inputBaby);
 
+        // Baby age in months
+        android.widget.TextView lblAge = new android.widget.TextView(this);
+        lblAge.setText("Baby age in months / Alter in Monaten");
+        lblAge.setTextSize(12f);
+        lblAge.setTextColor(0xFF888888);
+        lblAge.setPadding(0, 24, 0, 0);
+
+        EditText inputAge = new EditText(this);
+        inputAge.setInputType(InputType.TYPE_CLASS_NUMBER);
+        inputAge.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(3) });
+        inputAge.setTextSize(16f);
+        String existingAge = prefs.getString(KEY_BABY_AGE, "");
+        if (!existingAge.isEmpty()) inputAge.setText(existingAge);
+
+        // Family language
+        android.widget.TextView lblLang = new android.widget.TextView(this);
+        lblLang.setText("Family language / Familiensprache");
+        lblLang.setTextSize(12f);
+        lblLang.setTextColor(0xFF888888);
+        lblLang.setPadding(0, 24, 0, 0);
+
+        EditText inputLang = new EditText(this);
+        inputLang.setInputType(InputType.TYPE_CLASS_TEXT);
+        inputLang.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(40) });
+        inputLang.setTextSize(16f);
+        String existingLang = prefs.getString(KEY_FAMILY_LANGUAGE, "");
+        if (!existingLang.isEmpty()) inputLang.setText(existingLang);
+
+        inner.addView(lblAge);
+        inner.addView(inputAge);
+        inner.addView(lblLang);
+        inner.addView(inputLang);
+
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.session_setup_title))
                 .setMessage(getString(R.string.session_setup_message))
                 .setView(inner)
                 .setCancelable(cancellable)
                 .setPositiveButton(getString(R.string.btn_start_session), (d, w) -> {
-                    String pid = inputParticipant.getText().toString().trim().toUpperCase();
-                    String bid = inputBaby.getText().toString().trim().toUpperCase();
-                    if (!pid.isEmpty()) prefs.edit().putString(KEY_PARTICIPANT_ID, pid).apply();
-                    if (!bid.isEmpty()) prefs.edit().putString(KEY_BABY_ID, bid).apply();
+                    String pid  = inputParticipant.getText().toString().trim().toUpperCase();
+                    String bid  = inputBaby.getText().toString().trim();
+                    String age  = inputAge.getText().toString().trim();
+                    String lang = inputLang.getText().toString().trim();
+                    if (!pid.isEmpty())  prefs.edit().putString(KEY_PARTICIPANT_ID, pid).apply();
+                    if (!bid.isEmpty())  prefs.edit().putString(KEY_BABY_ID, bid.toUpperCase()).apply();
+                    if (!age.isEmpty())  prefs.edit().putString(KEY_BABY_AGE, age).apply();
+                    if (!lang.isEmpty()) prefs.edit().putString(KEY_FAMILY_LANGUAGE, lang).apply();
                     Fragment frag = getSupportFragmentManager()
                             .findFragmentById(R.id.fragmentContainer);
                     if (frag instanceof HomeFragment) {

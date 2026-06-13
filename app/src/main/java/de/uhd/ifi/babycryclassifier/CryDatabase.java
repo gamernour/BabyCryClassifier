@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = {CryRecord.class}, version = 5, exportSchema = false)
+@Database(entities = {CryRecord.class}, version = 6, exportSchema = false)
 public abstract class CryDatabase extends RoomDatabase {
 
     public abstract CryDao cryDao();
@@ -52,6 +52,18 @@ public abstract class CryDatabase extends RoomDatabase {
         }
     };
 
+    /** Adds baby age, family language, per-cry context columns. */
+    static final Migration MIGRATION_5_6 = new Migration(5, 6) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE cry_history ADD COLUMN babyAgeMonths TEXT");
+            database.execSQL("ALTER TABLE cry_history ADD COLUMN familyLanguage TEXT");
+            database.execSQL("ALTER TABLE cry_history ADD COLUMN whatStoppedCry TEXT");
+            database.execSQL("ALTER TABLE cry_history ADD COLUMN noiseLevel INTEGER NOT NULL DEFAULT 0");
+            database.execSQL("ALTER TABLE cry_history ADD COLUMN notes TEXT");
+        }
+    };
+
     public static CryDatabase getInstance(Context context) {
         if (INSTANCE == null) {
             synchronized (CryDatabase.class) {
@@ -60,7 +72,8 @@ public abstract class CryDatabase extends RoomDatabase {
                                     context.getApplicationContext(),
                                     CryDatabase.class,
                                     "cry_history_db")
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,
+                                    MIGRATION_4_5, MIGRATION_5_6)
                             .build();
                 }
             }

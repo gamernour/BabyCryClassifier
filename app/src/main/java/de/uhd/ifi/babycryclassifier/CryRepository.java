@@ -73,6 +73,16 @@ public class CryRepository {
             dao.deleteById(id);
         });
     }
+    /** Updates per-cry context from feedback steps 3-5. */
+    public void updateContextInfo(int id, String whatStopped, int noise, String notes) {
+        executor.execute(() -> dao.updateContextInfo(id, whatStopped, noise, notes));
+    }
+
+    /** Updates session-level baby info on a record. */
+    public void updateBabyInfo(int id, String age, String language) {
+        executor.execute(() -> dao.updateBabyInfo(id, age, language));
+    }
+
     public LiveData<List<CryRecord>> getRecentCries() {
         return dao.getRecentCries();
     }
