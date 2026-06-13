@@ -34,7 +34,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Baby Cry Classifier"
+                android:text="@string/app_title"
                 android:textSize="22sp"
                 android:textStyle="bold"
                 android:textColor="#1E3A5F"
@@ -61,7 +61,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:id="@+id/participantLabel"
-                    android:text="Session: —"
+                    android:text="@string/session_label"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     android:textColor="#0C447C" />
@@ -70,7 +70,7 @@
                     android:id="@+id/changeParticipantBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="change"
+                    android:text="@string/change_session"
                     android:textSize="12sp"
                     android:textColor="#185FA5"
                     android:paddingStart="8dp" />
@@ -82,7 +82,7 @@
                 android:id="@+id/statusText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ready"
+                android:text="@string/status_ready"
                 android:textSize="13sp"
                 android:textColor="#64748B"
                 android:background="@drawable/bg_status_pill"
@@ -111,7 +111,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Auto Listen"
+                        android:text="@string/auto_listen"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="#94A3B8"
@@ -130,7 +130,7 @@
                             android:layout_height="52dp"
                             android:layout_weight="1"
                             android:layout_marginEnd="6dp"
-                            android:text="Start"
+                            android:text="@string/btn_start"
                             android:textSize="15sp"
                             android:textColor="#FFFFFF"
                             android:backgroundTint="#0D9488"
@@ -142,7 +142,7 @@
                             android:layout_height="52dp"
                             android:layout_weight="1"
                             android:layout_marginStart="6dp"
-                            android:text="Stop"
+                            android:text="@string/btn_stop"
                             android:textSize="15sp"
                             android:backgroundTint="#CBD5E1"
                             android:textColor="#FFFFFF"
@@ -185,7 +185,7 @@
                     android:id="@+id/recordHintText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tap to record &amp; classify"
+                    android:text="@string/record_hint"
                     android:textSize="13sp"
                     android:textColor="#94A3B8"
                     android:layout_gravity="center" />
@@ -211,7 +211,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Result"
+                        android:text="@string/result_label"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:textColor="#94A3B8"
@@ -402,6 +402,22 @@
                 android:layout_marginTop="4dp" />
 
         </LinearLayout>
+
+        <!-- Discard button — always visible on overlay -->
+        <TextView
+            android:id="@+id/discardButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="32dp"
+            android:text="@string/discard_recording"
+            android:textSize="13sp"
+            android:textColor="#80000000"
+            android:background="@android:color/transparent"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp" />
 
     </LinearLayout>
 

@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = {CryRecord.class}, version = 4, exportSchema = false)
+@Database(entities = {CryRecord.class}, version = 5, exportSchema = false)
 public abstract class CryDatabase extends RoomDatabase {
 
     public abstract CryDao cryDao();
@@ -42,6 +42,16 @@ public abstract class CryDatabase extends RoomDatabase {
         }
     };
 
+    /** Adds babyId, userLabel, labelConfidence columns. */
+    static final Migration MIGRATION_4_5 = new Migration(4, 5) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE cry_history ADD COLUMN babyId TEXT");
+            database.execSQL("ALTER TABLE cry_history ADD COLUMN userLabel TEXT");
+            database.execSQL("ALTER TABLE cry_history ADD COLUMN labelConfidence TEXT");
+        }
+    };
+
     public static CryDatabase getInstance(Context context) {
         if (INSTANCE == null) {
             synchronized (CryDatabase.class) {
@@ -50,7 +60,7 @@ public abstract class CryDatabase extends RoomDatabase {
                                     context.getApplicationContext(),
                                     CryDatabase.class,
                                     "cry_history_db")
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                             .build();
                 }
             }

@@ -1,76 +1,188 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="32dp"
     android:background="#F7F8FA">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="1 min ago"
-        android:textSize="12sp"
-        android:textColor="#64748B"
-        android:background="#E2E8F0"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:layout_marginBottom="20dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Was the classification correct?"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textAlignment="center"
-        android:textColor="#1E3A5F"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:id="@+id/feedbackResultLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="15sp"
-        android:textAlignment="center"
-        android:textColor="#64748B"
-        android:layout_marginBottom="36dp"
-        android:text="I detected: Hunger" />
-
-    <Button
-        android:id="@+id/btnYes"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Yes, that was correct"
-        android:textSize="15sp"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="#EAF3DE"
-        android:textColor="#27500A"
-        style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="28dp"
+        android:gravity="center_horizontal">
 
-    <Button
-        android:id="@+id/btnNo"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="No, it was wrong"
-        android:textSize="15sp"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="#FCEBEB"
-        android:textColor="#791F1F"
-        style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/feedback_time_ago"
+            android:textSize="12sp"
+            android:textColor="#64748B"
+            android:background="#E2E8F0"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginBottom="16dp" />
 
-    <Button
-        android:id="@+id/btnUnsure"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Not sure"
-        android:textSize="15sp"
-        android:backgroundTint="#E2E8F0"
-        android:textColor="#475569"
-        style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/feedback_title"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:textColor="#1E3A5F"
+            android:layout_marginBottom="6dp" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/feedbackResultLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textAlignment="center"
+            android:textColor="#64748B"
+            android:layout_marginBottom="28dp"
+            android:text="@string/feedback_detected" />
+
+        <!-- STEP 1: Class selection -->
+        <LinearLayout
+            android:id="@+id/step1Layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_step1_question"
+                android:textSize="13sp"
+                android:textColor="#64748B"
+                android:layout_marginBottom="14dp" />
+
+            <Button
+                android:id="@+id/btnHunger"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="@string/btn_hunger"
+                android:textSize="14sp"
+                android:layout_marginBottom="10dp"
+                android:backgroundTint="#F09595"
+                android:textColor="#501313"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+            <Button
+                android:id="@+id/btnBurp"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="@string/btn_burp"
+                android:textSize="14sp"
+                android:layout_marginBottom="10dp"
+                android:backgroundTint="#FFB347"
+                android:textColor="#412402"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+            <Button
+                android:id="@+id/btnDiscomfort"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="@string/btn_discomfort"
+                android:textSize="14sp"
+                android:layout_marginBottom="10dp"
+                android:backgroundTint="#5DCAA5"
+                android:textColor="#04342C"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+            <Button
+                android:id="@+id/btnBellyPain"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="@string/btn_belly_pain"
+                android:textSize="14sp"
+                android:layout_marginBottom="10dp"
+                android:backgroundTint="#C0DD97"
+                android:textColor="#173404"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+            <Button
+                android:id="@+id/btnTiredness"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="@string/btn_tiredness"
+                android:textSize="14sp"
+                android:layout_marginBottom="10dp"
+                android:backgroundTint="#85B7EB"
+                android:textColor="#042C53"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+            <Button
+                android:id="@+id/btnNotSure"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="@string/btn_not_sure"
+                android:textSize="14sp"
+                android:layout_marginBottom="0dp"
+                android:backgroundTint="#E2E8F0"
+                android:textColor="#475569"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+        </LinearLayout>
+
+        <!-- STEP 2: Confidence selection -->
+        <LinearLayout
+            android:id="@+id/step2Layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/feedback_step2_question"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#1E3A5F"
+                android:layout_marginBottom="20dp" />
+
+            <Button
+                android:id="@+id/btnConfHigh"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="@string/btn_conf_high"
+                android:textSize="15sp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#EAF3DE"
+                android:textColor="#27500A"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+            <Button
+                android:id="@+id/btnConfMedium"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="@string/btn_conf_medium"
+                android:textSize="15sp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#FFF3CD"
+                android:textColor="#856404"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+            <Button
+                android:id="@+id/btnConfLow"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="@string/btn_conf_low"
+                android:textSize="15sp"
+                android:backgroundTint="#FCEBEB"
+                android:textColor="#791F1F"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -71,6 +71,11 @@ public class HomeFragment extends Fragment {
     private LinearLayout flashOverlay, overlayTop, overlayBottom;
     private TextView     overlayTopEmoji, overlayTopLabel, overlayTopPercent;
     private TextView     overlayBottomEmoji, overlayBottomLabel, overlayBottomPercent;
+    private TextView     discardButton;
+
+    // Tracks the DB record id and audio path of the current overlay — for discard
+    private int    pendingRecordId   = -1;
+    private String pendingAudioPath  = null;
 
     private boolean serviceRunning = false;
     private boolean isRecording    = false;
@@ -131,6 +136,9 @@ public class HomeFragment extends Fragment {
         overlayBottomEmoji   = view.findViewById(R.id.overlayBottomEmoji);
         overlayBottomLabel   = view.findViewById(R.id.overlayBottomLabel);
         overlayBottomPercent = view.findViewById(R.id.overlayBottomPercent);
+        discardButton        = view.findViewById(R.id.discardButton);
+
+        discardButton.setOnClickListener(v -> discardCurrentRecording());
 
         startListeningButton.setOnClickListener(v -> startDetectionService());
         stopListeningButton.setOnClickListener(v  -> stopDetectionService());
@@ -175,7 +183,7 @@ public class HomeFragment extends Fragment {
         ContextCompat.startForegroundService(requireContext(),
                 new Intent(requireContext(), CryDetectionService.class));
         serviceRunning = true;
-        statusText.setText("Listening…");
+        statusText.setText(getString(R.string.status_listening));
         clearResults();
         updateListeningButtons();
     }
@@ -183,7 +191,7 @@ public class HomeFragment extends Fragment {
     private void stopDetectionService() {
         requireContext().stopService(new Intent(requireContext(), CryDetectionService.class));
         serviceRunning = false;
-        statusText.setText("Stopped");
+        statusText.setText(getString(R.string.status_stopped));
         updateListeningButtons();
     }
 
@@ -215,8 +223,8 @@ public class HomeFragment extends Fragment {
         recordButton.setEnabled(false);
         recordButton.setBackgroundTintList(
                 android.content.res.ColorStateList.valueOf(0xFFB91C1C));
-        statusText.setText("Recording 3 s…");
-        recordHintText.setText("Hold near the baby…");
+        statusText.setText(getString(R.string.status_recording));
+        recordHintText.setText(getString(R.string.hold_near_baby));
         clearResults();
 
         new Thread(() -> {
@@ -242,7 +250,7 @@ public class HomeFragment extends Fragment {
             recorder.release();
 
             if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> statusText.setText("Analysing…"));
+                getActivity().runOnUiThread(() -> statusText.setText(getString(R.string.status_analysing)));
             }
 
             clip = CryDetectionService.rmsNormalize(clip);
@@ -264,7 +272,7 @@ public class HomeFragment extends Fragment {
                     recordButton.setEnabled(true);
                     recordButton.setBackgroundTintList(
                             android.content.res.ColorStateList.valueOf(0xFFEF4444));
-                    recordHintText.setText("Tap to record & classify");
+                    recordHintText.setText(getString(R.string.record_hint));
 
                     if (finalResult != null) {
                         showResult(finalResult.top1Label, finalResult.top1Percent,
@@ -280,11 +288,12 @@ public class HomeFragment extends Fragment {
                                 SharedPreferences prefs = requireContext()
                                         .getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE);
                                 String participantId = prefs.getString(MainActivity.KEY_PARTICIPANT_ID, "unknown");
+                                String babyId = prefs.getString(MainActivity.KEY_BABY_ID, "unknown");
                                 long recordId = repo.insertForId(
                                         new CryRecord(timestamp,
                                                 finalResult.top1Label, finalResult.top1Percent,
                                                 finalResult.top2Label, finalResult.top2Percent,
-                                                participantId)).get();
+                                                participantId, babyId)).get();
 
                                 // Save WAV file and store path in DB
                                 String audioPath = saveAudioToFile(processedClip, timestamp);
@@ -292,16 +301,22 @@ public class HomeFragment extends Fragment {
                                     repo.updateAudioPath((int) recordId, audioPath);
                                 }
 
+                                // Store pending info so discard button can clean up
                                 if (getActivity() != null) {
-                                    getActivity().runOnUiThread(() ->
-                                            scheduleFeedbackAlarm(finalResult.top1Label, (int) recordId));
+                                    final int finalRecordId = (int) recordId;
+                                    final String finalAudioPath = audioPath;
+                                    getActivity().runOnUiThread(() -> {
+                                        pendingRecordId  = finalRecordId;
+                                        pendingAudioPath = finalAudioPath;
+                                        scheduleFeedbackAlarm(finalResult.top1Label, finalRecordId);
+                                    });
                                 }
                             } catch (Exception e) {
                                 android.util.Log.e("HomeFragment", "DB insert error", e);
                             }
                         }).start();
                     } else {
-                        statusText.setText("Could not classify. Try again.");
+                        statusText.setText(getString(R.string.status_error));
                     }
                 });
             }
@@ -461,6 +476,53 @@ public class HomeFragment extends Fragment {
         startActivity(feedbackIntent);
     }
 
+    // ─── Discard ──────────────────────────────────────────────────────────────
+
+    private void discardCurrentRecording() {
+        handler.removeCallbacksAndMessages(null);
+
+        if (pendingRecordId != -1) {
+            Intent alarmIntent = new Intent(requireContext(), FeedbackAlarmReceiver.class);
+            android.app.PendingIntent pi = android.app.PendingIntent.getBroadcast(
+                    requireContext(), pendingRecordId, alarmIntent,
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE);
+            android.app.AlarmManager am = (android.app.AlarmManager)
+                    requireContext().getSystemService(Context.ALARM_SERVICE);
+            if (am != null) am.cancel(pi);
+        }
+
+        requireContext().getSharedPreferences(MainActivity.PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .remove(KEY_PENDING_FEEDBACK_ID)
+                .remove(KEY_PENDING_FEEDBACK_LABEL)
+                .remove(KEY_PENDING_FEEDBACK_TIME)
+                .apply();
+
+        final int idToDelete      = pendingRecordId;
+        final String pathToDelete = pendingAudioPath;
+        new Thread(() -> {
+            if (idToDelete != -1)   CryRepository.getInstance(requireContext()).deleteById(idToDelete);
+            if (pathToDelete != null) { java.io.File f = new java.io.File(pathToDelete); if (f.exists()) f.delete(); }
+        }).start();
+
+        pendingRecordId  = -1;
+        pendingAudioPath = null;
+
+        if (flashOverlay != null) {
+            flashOverlay.animate().alpha(0f).setDuration(200)
+                    .withEndAction(() -> {
+                        flashOverlay.setVisibility(View.GONE);
+                        if (getActivity() != null) {
+                            com.google.android.material.bottomnavigation.BottomNavigationView bnv =
+                                    getActivity().findViewById(R.id.bottomNav);
+                            if (bnv != null) bnv.setVisibility(View.VISIBLE);
+                        }
+                    }).start();
+        }
+        android.widget.Toast.makeText(requireContext(),
+                getString(R.string.recording_discarded), android.widget.Toast.LENGTH_SHORT).show();
+    }
+
     // ─── Audio saving
 
     /**
@@ -522,7 +584,7 @@ public class HomeFragment extends Fragment {
     // ─── Result display
 
     private void showResult(String l1, int p1, String l2, int p2) {
-        statusText.setText("Result ready");
+        statusText.setText(getString(R.string.status_result_ready));
         top1Text.setText(l1);
         top1PercentBadge.setText(p1 + "%");
 
@@ -549,9 +611,9 @@ public class HomeFragment extends Fragment {
     }
 
     private String confidenceLabel(int percent) {
-        if (percent >= GREEN_THRESHOLD)  return "Very likely";
-        if (percent >= ORANGE_THRESHOLD) return "Possible";
-        return "Low confidence";
+        if (percent >= GREEN_THRESHOLD)  return getString(R.string.conf_very_likely);
+        if (percent >= ORANGE_THRESHOLD) return getString(R.string.conf_possible);
+        return getString(R.string.conf_low);
     }
 
     private int colorForPercent(int percent) {

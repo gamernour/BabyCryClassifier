@@ -4,32 +4,68 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="12dp"
-    android:background="?attr/selectableItemBackground">
+    android:background="@android:color/white">
 
-    <!-- Divider line between items -->
+    <!-- Divider -->
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="0.5dp"
         android:background="#E0E0E0"
         android:layout_marginBottom="8dp"/>
 
-    <TextView
-        android:id="@+id/timestampText"
+    <!-- Row: timestamp + delete -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="12sp"
-        android:textColor="#888888"
-        android:text="23 Apr 2025  14:32:01"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
 
-    <TextView
-        android:id="@+id/historyTop1Text"
+        <TextView
+            android:id="@+id/timestampText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:text="23 Apr 2025  14:32:01"/>
+
+        <ImageButton
+            android:id="@+id/deleteButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="#E57373"
+            android:contentDescription="Delete recording" />
+
+    </LinearLayout>
+
+    <!-- Top1 with dot -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:paddingTop="4dp"
-        android:textColor="#FF0000"
-        android:text="Hunger — 87%"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="2dp">
+
+        <View
+            android:id="@+id/classColorDot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:id="@+id/historyTop1Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#1E3A5F"
+            android:text="Hunger — 87%"/>
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/historyTop2Text"
@@ -38,6 +74,15 @@
         android:textSize="14sp"
         android:textColor="#666666"
         android:paddingTop="2dp"
-        android:text="Also possible: Discomfort (9%)"/>
+        android:text="@string/also_possible"/>
+
+    <TextView
+        android:id="@+id/historyFeedbackText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#64748B"
+        android:paddingTop="4dp"
+        android:text=""/>
 
 </LinearLayout>

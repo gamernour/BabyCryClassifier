@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String PREFS_NAME        = "BabyCryPrefs";
     public static final String KEY_PARTICIPANT_ID = "participant_id";
+    public static final String KEY_BABY_ID        = "baby_id";
 
     private static final int PERMISSION_REQUEST_CODE = 100;
 
@@ -85,47 +86,60 @@ public class MainActivity extends AppCompatActivity {
      * cancellable=true when triggered by "change" button.
      */
     public void showParticipantIdDialog(boolean cancellable) {
-        EditText input = new EditText(this);
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
-        input.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(10) });
-        input.setHint("e.g. P01");
-        input.setTextSize(18f);
-        input.setGravity(android.view.Gravity.CENTER);
+        // Participant ID input
+        EditText inputParticipant = new EditText(this);
+        inputParticipant.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+        inputParticipant.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(10) });
+        inputParticipant.setHint("Participant ID (e.g. P01)");
+        inputParticipant.setTextSize(16f);
 
-        // Prefill with existing value if changing
+        // Baby ID input
+        EditText inputBaby = new EditText(this);
+        inputBaby.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+        inputBaby.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(10) });
+        inputBaby.setHint("Baby ID (e.g. B01)");
+        inputBaby.setTextSize(16f);
+        inputBaby.setPadding(0, 24, 0, 0);
+
+        // Prefill with existing values
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String existing = prefs.getString(KEY_PARTICIPANT_ID, "");
-        if (!existing.isEmpty()) input.setText(existing);
+        String existingPid = prefs.getString(KEY_PARTICIPANT_ID, "");
+        String existingBid = prefs.getString(KEY_BABY_ID, "");
+        if (!existingPid.isEmpty()) inputParticipant.setText(existingPid);
+        if (!existingBid.isEmpty()) inputBaby.setText(existingBid);
 
         FrameLayout container = new FrameLayout(this);
+        android.widget.LinearLayout inner = new android.widget.LinearLayout(this);
+        inner.setOrientation(android.widget.LinearLayout.VERTICAL);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT);
         lp.setMargins(56, 16, 56, 8);
-        input.setLayoutParams(lp);
-        container.addView(input);
+        inner.setLayoutParams(lp);
+        inner.addView(inputParticipant);
+        inner.addView(inputBaby);
+        container.addView(inner);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Participant ID")
-                .setMessage("Enter the participant ID for this session (e.g. P01, P02).\nThis stays set until you change it.")
+                .setTitle(getString(R.string.session_setup_title))
+                .setMessage(getString(R.string.session_setup_message))
                 .setView(container)
                 .setCancelable(cancellable)
-                .setPositiveButton("Start session", (d, w) -> {
-                    String id = input.getText().toString().trim().toUpperCase();
-                    if (!id.isEmpty()) {
-                        prefs.edit().putString(KEY_PARTICIPANT_ID, id).apply();
-                        // Refresh HomeFragment badge
-                        Fragment frag = getSupportFragmentManager()
-                                .findFragmentById(R.id.fragmentContainer);
-                        if (frag instanceof HomeFragment) {
-                            ((HomeFragment) frag).updateParticipantBadge();
-                        }
+                .setPositiveButton(getString(R.string.btn_start_session), (d, w) -> {
+                    String pid = inputParticipant.getText().toString().trim().toUpperCase();
+                    String bid = inputBaby.getText().toString().trim().toUpperCase();
+                    if (!pid.isEmpty()) prefs.edit().putString(KEY_PARTICIPANT_ID, pid).apply();
+                    if (!bid.isEmpty()) prefs.edit().putString(KEY_BABY_ID, bid).apply();
+                    // Refresh HomeFragment badge
+                    Fragment frag = getSupportFragmentManager()
+                            .findFragmentById(R.id.fragmentContainer);
+                    if (frag instanceof HomeFragment) {
+                        ((HomeFragment) frag).updateParticipantBadge();
                     }
                 })
                 .create();
 
         if (!cancellable) {
-            // Force researcher to enter something — no dismiss on outside tap
             dialog.setCanceledOnTouchOutside(false);
         }
         dialog.show();
@@ -156,17 +170,15 @@ public class MainActivity extends AppCompatActivity {
             AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
             if (am != null && !am.canScheduleExactAlarms()) {
                 new AlertDialog.Builder(this)
-                        .setTitle("Allow exact alarms")
-                        .setMessage(
-                                "This app uses a 5-minute timer to ask whether a cry was " +
-                                        "classified correctly. Please allow exact alarms in the next screen.")
-                        .setPositiveButton("Open settings", (d, w) -> {
+                        .setTitle(getString(R.string.alarm_title))
+                        .setMessage(getString(R.string.alarm_message))
+                        .setPositiveButton(getString(R.string.btn_open_settings), (d, w) -> {
                             Intent intent = new Intent(
                                     Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
                                     Uri.parse("package:" + getPackageName()));
                             startActivity(intent);
                         })
-                        .setNegativeButton("Skip", null)
+                        .setNegativeButton(getString(R.string.btn_skip), null)
                         .show();
             }
         }

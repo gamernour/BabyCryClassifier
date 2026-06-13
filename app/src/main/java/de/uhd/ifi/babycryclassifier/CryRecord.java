@@ -29,17 +29,30 @@ public class CryRecord {
     // Participant ID for user study (e.g. "P01", "P02")
     public String participantId;  // set from SharedPreferences at record time
 
+    // Baby ID for user study (e.g. "B01") — one baby can have multiple recordings
+    public String babyId;         // set from SharedPreferences at record time
+
+    // Parent's label after the cry — which Dunstan class they think it was
+    public String userLabel;      // null | "Hunger" | "Need to burp" | "Discomfort" | "Belly pain" | "Tiredness" | "unsure"
+
+    // Parent's confidence in their label
+    public String labelConfidence; // null | "high" | "medium" | "low"
+
     public CryRecord(long timestamp,
                      String top1Label, int top1Percent,
                      String top2Label, int top2Percent,
-                     String participantId) {
-        this.timestamp     = timestamp;
-        this.top1Label     = top1Label;
-        this.top1Percent   = top1Percent;
-        this.top2Label     = top2Label;
-        this.top2Percent   = top2Percent;
-        this.userFeedback  = null;
-        this.audioPath     = null;
-        this.participantId = participantId;
+                     String participantId,
+                     String babyId) {
+        this.timestamp      = timestamp;
+        this.top1Label      = top1Label;
+        this.top1Percent    = top1Percent;
+        this.top2Label      = top2Label;
+        this.top2Percent    = top2Percent;
+        this.userFeedback   = null;
+        this.audioPath      = null;
+        this.participantId  = participantId;
+        this.babyId         = babyId;
+        this.userLabel      = null;
+        this.labelConfidence = null;
     }
 }

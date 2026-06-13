@@ -373,7 +373,9 @@ public class CryDetectionService extends Service {
                     CryRepository.getInstance(getApplicationContext())
                             .insertForId(new CryRecord(detectedAt, winner, confidence, second, secondPct,
                                     getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE)
-                                            .getString(MainActivity.KEY_PARTICIPANT_ID, "unknown")));
+                                            .getString(MainActivity.KEY_PARTICIPANT_ID, "unknown"),
+                                    getSharedPreferences(MainActivity.PREFS_NAME, MODE_PRIVATE)
+                                            .getString(MainActivity.KEY_BABY_ID, "unknown")));
             recordId = future.get().intValue();   // blocks briefly — we're already on a bg thread
         } catch (Exception e) {
             android.util.Log.e("CryDetection", "DB insert failed", e);

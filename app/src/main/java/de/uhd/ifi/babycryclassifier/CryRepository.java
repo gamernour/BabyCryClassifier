@@ -56,6 +56,23 @@ public class CryRepository {
     public void updateAudioPath(int id, String path) {
         executor.execute(() -> dao.updateAudioPath(id, path));
     }
+
+    /** Called when parent selects the actual Dunstan class + confidence. */
+    public void updateUserLabel(int id, String label, String confidence) {
+        executor.execute(() -> dao.updateUserLabel(id, label, confidence));
+    }
+
+    /** Delete a single recording — removes DB record and WAV file from disk. */
+    public void deleteById(int id) {
+        executor.execute(() -> {
+            CryRecord record = dao.getById(id);
+            if (record != null && record.audioPath != null) {
+                java.io.File file = new java.io.File(record.audioPath);
+                if (file.exists()) file.delete();
+            }
+            dao.deleteById(id);
+        });
+    }
     public LiveData<List<CryRecord>> getRecentCries() {
         return dao.getRecentCries();
     }

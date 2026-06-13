@@ -1,3 +1,88 @@
 <resources>
     <string name="app_name">BabyCryClassifier</string>
+
+    <!-- Home Fragment -->
+    <string name="app_title">Baby Cry Classifier</string>
+    <string name="session_label">Session: —</string>
+    <string name="change_session">change</string>
+    <string name="status_ready">Ready</string>
+    <string name="status_listening">Listening…</string>
+    <string name="status_stopped">Stopped</string>
+    <string name="status_recording">Recording 3 s…</string>
+    <string name="status_analysing">Analysing…</string>
+    <string name="status_result_ready">Result ready</string>
+    <string name="status_error">Could not classify. Try again.</string>
+    <string name="hold_near_baby">Hold near the baby…</string>
+    <string name="auto_listen">Auto Listen</string>
+    <string name="btn_start">Start</string>
+    <string name="btn_stop">Stop</string>
+    <string name="record_hint">Tap to record &amp; classify</string>
+    <string name="result_label">Result</string>
+    <string name="result_placeholder">—</string>
+    <string name="conf_very_likely">Very likely</string>
+    <string name="conf_possible">Possible</string>
+    <string name="conf_low">Low confidence</string>
+    <string name="discard_recording">Discard this recording</string>
+    <string name="recording_discarded">Recording discarded</string>
+
+    <!-- Class label names (used for display — DB always stores English keys) -->
+    <string name="label_hunger">Hunger</string>
+    <string name="label_burp">Need to burp</string>
+    <string name="label_discomfort">Discomfort</string>
+    <string name="label_belly_pain">Belly pain</string>
+    <string name="label_tiredness">Tiredness</string>
+
+    <!-- Confidence labels -->
+    <string name="conf_high">high confidence</string>
+    <string name="conf_medium">medium confidence</string>
+    <string name="conf_low_label">low confidence</string>
+
+    <!-- History Fragment -->
+    <string name="cry_history_title">Cry History</string>
+    <string name="btn_clear_all">Clear all</string>
+    <string name="history_empty">No cry events recorded yet.\nStart listening to begin monitoring.</string>
+    <string name="also_possible">Also possible: %1$s (%2$d%%)</string>
+    <string name="parent_said">Parent said: %1$s</string>
+    <string name="parent_said_label">Parent said: %1$s</string>
+    <string name="parent_said_confidence">Parent said: %1$s (%2$s confidence)</string>
+    <string name="parent_not_sure">Parent said: Not sure</string>
+    <string name="awaiting_feedback">Awaiting feedback…</string>
+    <string name="delete_recording">Delete recording</string>
+    <string name="delete_confirm_title">Delete recording?</string>
+    <string name="delete_confirm_message">This will permanently delete this cry recording and its audio file.</string>
+    <string name="clear_all_confirm_title">Clear all history?</string>
+    <string name="clear_all_confirm_message">This will permanently delete all cry recordings.</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_cancel">Cancel</string>
+
+    <!-- Feedback Activity -->
+    <string name="feedback_time_ago">1 min ago</string>
+    <string name="feedback_title">What was the cry about?</string>
+    <string name="feedback_detected">I detected: %1$s</string>
+    <string name="feedback_step1_question">What was the baby\'s need?</string>
+    <string name="feedback_step2_question">How confident are you?</string>
+    <string name="btn_hunger">🍼  Hunger (Neh) — before feeding</string>
+    <string name="btn_burp">🫧  Need to burp (Eh) — after feeding</string>
+    <string name="btn_discomfort">😣  Discomfort (Heh) — wet diaper / too hot</string>
+    <string name="btn_belly_pain">🤕  Belly pain / gas (Eairh) — legs pulled up</string>
+    <string name="btn_tiredness">😴  Tiredness (Owh) — before sleep</string>
+    <string name="btn_not_sure">Not sure</string>
+    <string name="btn_conf_high">High — I\'m quite sure</string>
+    <string name="btn_conf_medium">Medium — I think so</string>
+    <string name="btn_conf_low">Low — just a guess</string>
+    <string name="feedback_thanks">Thanks for your feedback!</string>
+
+    <!-- Flash Activity -->
+    <string name="flash_sub">Classification complete</string>
+
+    <!-- MainActivity dialogs -->
+    <string name="session_setup_title">Session Setup</string>
+    <string name="session_setup_message">Set the participant and baby IDs before starting.\nThese stay set until you change them.</string>
+    <string name="participant_id_hint">Participant ID (e.g. P01)</string>
+    <string name="baby_id_label">Baby ID (e.g. B01)</string>
+    <string name="btn_start_session">Start session</string>
+    <string name="alarm_title">Allow exact alarms</string>
+    <string name="alarm_message">This app uses a timer to ask whether a cry was classified correctly. Please allow exact alarms in the next screen.</string>
+    <string name="btn_open_settings">Open settings</string>
+    <string name="btn_skip">Skip</string>
 </resources>
