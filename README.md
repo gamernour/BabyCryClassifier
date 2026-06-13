@@ -45,7 +45,6 @@ The model is a VGG16 classification head fine-tuned on a combination of the orig
 ## Built with
 - TensorFlow Lite
 - VGG16 fine-tuned on Dunstan Baby Language dataset
-- Heidelberg University BSc Thesis 2026
 
 ---
  
