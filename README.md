@@ -41,25 +41,6 @@ The model is a VGG16 classification head fine-tuned on a combination of the orig
 - **Flash result screen** — full-screen colour-coded result display after detection
 - **History tab** — all detections and feedback stored in a local Room database
 ---
-## Project Structure
- 
-```
-app/src/main/java/de/uhd/ifi/babycryclassifier/
-├── AudioPreprocessor.java        Mel-spectrogram preprocessing pipeline
-├── CryClassifier.java            VGG16 TFLite inference (5-class)
-├── CryDetectionService.java      Background foreground service, binary gate, voting window
-├── CryDetector.java              Binary cry/no-cry CNN gate
-├── HomeFragment.java             Main UI — record button, result card
-├── HistoryFragment.java          Detection history list
-├── FlashActivity.java            Full-screen result display with timer bar
-├── FeedbackActivity.java         Yes/No/Unsure feedback screen
-├── FeedbackAlarmReceiver.java    Delayed notification for feedback
-├── MainActivity.java             Entry point, permissions, navigation
-├── CryRecord.java                Room database entity
-├── CryDao.java                   Room DAO
-├── CryDatabase.java              Room database (v2)
-└── CryRepository.java            Repository layer
-```
  
 ---
 ## Built with
