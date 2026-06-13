@@ -11,7 +11,6 @@ import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -86,51 +85,54 @@ public class MainActivity extends AppCompatActivity {
      * cancellable=true when triggered by "change" button.
      */
     public void showParticipantIdDialog(boolean cancellable) {
-        // Participant ID input
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        android.widget.LinearLayout inner = new android.widget.LinearLayout(this);
+        inner.setOrientation(android.widget.LinearLayout.VERTICAL);
+        inner.setPadding(56, 24, 56, 8);
+
+        // Participant ID — label above field (no hint, avoids strikethrough bug)
+        android.widget.TextView lblParticipant = new android.widget.TextView(this);
+        lblParticipant.setText("Participant ID (e.g. P01)");
+        lblParticipant.setTextSize(12f);
+        lblParticipant.setTextColor(0xFF888888);
+
         EditText inputParticipant = new EditText(this);
         inputParticipant.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         inputParticipant.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(10) });
-        inputParticipant.setHint("Participant ID (e.g. P01)");
         inputParticipant.setTextSize(16f);
+        String existingPid = prefs.getString(KEY_PARTICIPANT_ID, "");
+        if (!existingPid.isEmpty()) inputParticipant.setText(existingPid);
 
-        // Baby ID input
+        // Baby ID — label above field
+        android.widget.TextView lblBaby = new android.widget.TextView(this);
+        lblBaby.setText("Baby ID (e.g. B01)");
+        lblBaby.setTextSize(12f);
+        lblBaby.setTextColor(0xFF888888);
+        lblBaby.setPadding(0, 24, 0, 0);
+
         EditText inputBaby = new EditText(this);
         inputBaby.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
         inputBaby.setFilters(new InputFilter[]{ new InputFilter.LengthFilter(10) });
-        inputBaby.setHint("Baby ID (e.g. B01)");
         inputBaby.setTextSize(16f);
-        inputBaby.setPadding(0, 24, 0, 0);
-
-        // Prefill with existing values
-        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        String existingPid = prefs.getString(KEY_PARTICIPANT_ID, "");
         String existingBid = prefs.getString(KEY_BABY_ID, "");
-        if (!existingPid.isEmpty()) inputParticipant.setText(existingPid);
         if (!existingBid.isEmpty()) inputBaby.setText(existingBid);
 
-        FrameLayout container = new FrameLayout(this);
-        android.widget.LinearLayout inner = new android.widget.LinearLayout(this);
-        inner.setOrientation(android.widget.LinearLayout.VERTICAL);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(56, 16, 56, 8);
-        inner.setLayoutParams(lp);
+        inner.addView(lblParticipant);
         inner.addView(inputParticipant);
+        inner.addView(lblBaby);
         inner.addView(inputBaby);
-        container.addView(inner);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.session_setup_title))
                 .setMessage(getString(R.string.session_setup_message))
-                .setView(container)
+                .setView(inner)
                 .setCancelable(cancellable)
                 .setPositiveButton(getString(R.string.btn_start_session), (d, w) -> {
                     String pid = inputParticipant.getText().toString().trim().toUpperCase();
                     String bid = inputBaby.getText().toString().trim().toUpperCase();
                     if (!pid.isEmpty()) prefs.edit().putString(KEY_PARTICIPANT_ID, pid).apply();
                     if (!bid.isEmpty()) prefs.edit().putString(KEY_BABY_ID, bid).apply();
-                    // Refresh HomeFragment badge
                     Fragment frag = getSupportFragmentManager()
                             .findFragmentById(R.id.fragmentContainer);
                     if (frag instanceof HomeFragment) {
@@ -139,9 +141,7 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .create();
 
-        if (!cancellable) {
-            dialog.setCanceledOnTouchOutside(false);
-        }
+        if (!cancellable) dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
 

@@ -337,7 +337,7 @@ public class HomeFragment extends Fragment {
         // Set top section
         overlayTop.setBackgroundColor(bg1);
         overlayTopEmoji.setText(emoji1);
-        overlayTopLabel.setText(top1Label);
+        overlayTopLabel.setText(localiseLabel(top1Label));
         overlayTopLabel.setTextColor(txt1);
         overlayTopPercent.setText(top1Pct + "%");
         overlayTopPercent.setTextColor(txt1);
@@ -350,7 +350,7 @@ public class HomeFragment extends Fragment {
 
             overlayBottom.setBackgroundColor(bg2);
             overlayBottomEmoji.setText(emoji2);
-            overlayBottomLabel.setText(top2Label);
+            overlayBottomLabel.setText(localiseLabel(top2Label));
             overlayBottomLabel.setTextColor(txt2);
             overlayBottomPercent.setText(top2Pct + "%");
             overlayBottomPercent.setTextColor(txt2);
@@ -574,6 +574,18 @@ public class HomeFragment extends Fragment {
 
     // ─── Helpers
 
+    private String localiseLabel(String dbLabel) {
+        if (dbLabel == null) return "";
+        switch (dbLabel) {
+            case "Hunger":       return getString(R.string.label_hunger);
+            case "Need to burp": return getString(R.string.label_burp);
+            case "Discomfort":   return getString(R.string.label_discomfort);
+            case "Belly pain":   return getString(R.string.label_belly_pain);
+            case "Tiredness":    return getString(R.string.label_tiredness);
+            default:             return dbLabel;
+        }
+    }
+
     private Object[] configForLabel(String label) {
         for (Object[] row : CLASS_CONFIG) {
             if (((String) row[0]).equalsIgnoreCase(label)) return row;
@@ -585,7 +597,7 @@ public class HomeFragment extends Fragment {
 
     private void showResult(String l1, int p1, String l2, int p2) {
         statusText.setText(getString(R.string.status_result_ready));
-        top1Text.setText(l1);
+        top1Text.setText(localiseLabel(l1));
         top1PercentBadge.setText(p1 + "%");
 
         int color1 = colorForPercent(p1);
@@ -599,7 +611,7 @@ public class HomeFragment extends Fragment {
         if (showTop2) {
             top2Row.setVisibility(View.VISIBLE);
             resultDivider.setVisibility(View.VISIBLE);
-            top2Text.setText(l2);
+            top2Text.setText(localiseLabel(l2));
             top2PercentBadge.setText(p2 + "%");
             int color2 = colorForPercent(p2);
             top2Dot.setBackgroundTintList(

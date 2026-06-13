@@ -1,0 +1,88 @@
+<resources>
+    <string name="app_name">BabyCryClassifier</string>
+
+    <!-- Home Fragment -->
+    <string name="app_title">Babyschrei-Klassifikator</string>
+    <string name="session_label">Sitzung: —</string>
+    <string name="change_session">ändern</string>
+    <string name="status_ready">Bereit</string>
+    <string name="status_listening">Zuhören…</string>
+    <string name="status_stopped">Gestoppt</string>
+    <string name="status_recording">Aufnahme 3 s…</string>
+    <string name="status_analysing">Analyse…</string>
+    <string name="status_result_ready">Ergebnis bereit</string>
+    <string name="status_error">Konnte nicht klassifizieren. Erneut versuchen.</string>
+    <string name="hold_near_baby">Nah ans Baby halten…</string>
+    <string name="auto_listen">Automatisch zuhören</string>
+    <string name="btn_start">Start</string>
+    <string name="btn_stop">Stop</string>
+    <string name="record_hint">Tippen zum Aufnehmen &amp; Klassifizieren</string>
+    <string name="result_label">Ergebnis</string>
+    <string name="result_placeholder">—</string>
+    <string name="conf_very_likely">Sehr wahrscheinlich</string>
+    <string name="conf_possible">Möglich</string>
+    <string name="conf_low">Geringe Sicherheit</string>
+    <string name="discard_recording">Aufnahme verwerfen</string>
+    <string name="recording_discarded">Aufnahme verworfen</string>
+
+    <!-- Class label names -->
+    <string name="label_hunger">Hunger</string>
+    <string name="label_burp">Aufstoßen</string>
+    <string name="label_discomfort">Unbehagen</string>
+    <string name="label_belly_pain">Bauchschmerzen</string>
+    <string name="label_tiredness">Müdigkeit</string>
+
+    <!-- Confidence labels -->
+    <string name="conf_high">hohe Sicherheit</string>
+    <string name="conf_medium">mittlere Sicherheit</string>
+    <string name="conf_low_label">geringe Sicherheit</string>
+
+    <!-- History Fragment -->
+    <string name="cry_history_title">Schrei-Verlauf</string>
+    <string name="btn_clear_all">Alle löschen</string>
+    <string name="history_empty">Noch keine Schreiereien aufgezeichnet.\nStarten Sie das Zuhören, um zu beginnen.</string>
+    <string name="also_possible">Auch möglich: %1$s (%2$d%%)</string>
+    <string name="parent_said">Elternteil sagte: %1$s</string>
+    <string name="parent_said_label">Elternteil sagte: %1$s</string>
+    <string name="parent_said_confidence">Elternteil sagte: %1$s (%2$s)</string>
+    <string name="parent_not_sure">Elternteil sagte: Nicht sicher</string>
+    <string name="awaiting_feedback">Rückmeldung ausstehend…</string>
+    <string name="delete_recording">Aufnahme löschen</string>
+    <string name="delete_confirm_title">Aufnahme löschen?</string>
+    <string name="delete_confirm_message">Diese Aufnahme und die Audiodatei werden dauerhaft gelöscht.</string>
+    <string name="clear_all_confirm_title">Gesamten Verlauf löschen?</string>
+    <string name="clear_all_confirm_message">Alle Aufnahmen werden dauerhaft gelöscht.</string>
+    <string name="btn_delete">Löschen</string>
+    <string name="btn_cancel">Abbrechen</string>
+
+    <!-- Feedback Activity -->
+    <string name="feedback_time_ago">Vor 1 Minute</string>
+    <string name="feedback_title">Worum ging es beim Schreien?</string>
+    <string name="feedback_detected">Ich habe erkannt: %1$s</string>
+    <string name="feedback_step1_question">Was brauchte das Baby?</string>
+    <string name="feedback_step2_question">Wie sicher sind Sie?</string>
+    <string name="btn_hunger">🍼  Hunger (Neh) — vor dem Stillen</string>
+    <string name="btn_burp">🫧  Aufstoßen (Eh) — nach dem Stillen</string>
+    <string name="btn_discomfort">😣  Unbehagen (Heh) — nasse Windel / zu heiß</string>
+    <string name="btn_belly_pain">🤕  Bauchschmerzen / Gas (Eairh) — Beine angezogen</string>
+    <string name="btn_tiredness">😴  Müdigkeit (Owh) — vor dem Schlafen</string>
+    <string name="btn_not_sure">Nicht sicher</string>
+    <string name="btn_conf_high">Hoch — ich bin ziemlich sicher</string>
+    <string name="btn_conf_medium">Mittel — ich glaube schon</string>
+    <string name="btn_conf_low">Niedrig — nur eine Vermutung</string>
+    <string name="feedback_thanks">Vielen Dank für Ihr Feedback!</string>
+
+    <!-- Flash Activity -->
+    <string name="flash_sub">Klassifikation abgeschlossen</string>
+
+    <!-- MainActivity dialogs -->
+    <string name="session_setup_title">Sitzungseinrichtung</string>
+    <string name="session_setup_message">Legen Sie die Teilnehmer- und Baby-IDs fest.\nDiese bleiben gespeichert, bis Sie sie ändern.</string>
+    <string name="participant_id_hint">Teilnehmer-ID (z.B. P01)</string>
+    <string name="baby_id_label">Baby-ID (z.B. B01)</string>
+    <string name="btn_start_session">Sitzung starten</string>
+    <string name="alarm_title">Exakte Alarme erlauben</string>
+    <string name="alarm_message">Diese App verwendet einen Timer, um zu fragen, ob ein Schrei korrekt klassifiziert wurde. Bitte erlauben Sie exakte Alarme im nächsten Bildschirm.</string>
+    <string name="btn_open_settings">Einstellungen öffnen</string>
+    <string name="btn_skip">Überspringen</string>
+</resources>
