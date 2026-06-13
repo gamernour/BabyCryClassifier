@@ -40,7 +40,6 @@ The model is a VGG16 classification head fine-tuned on a combination of the orig
 - **Live voting** — 5 classification rounds with majority vote for more robust results
 - **Flash result screen** — full-screen colour-coded result display after detection
 - **History tab** — all detections and feedback stored in a local Room database
----
  
 ---
 ## Built with
